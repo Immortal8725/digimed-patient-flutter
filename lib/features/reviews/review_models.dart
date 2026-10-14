@@ -99,3 +99,45 @@ class MyReview {
   final String displayName;
   final String rejectionReason;
 }
+
+class PracticeReviewSummary {
+  PracticeReviewSummary(this.count, this.average);
+  factory PracticeReviewSummary.fromJson(Map<String, dynamic> j) {
+    final avg = j['average'];
+    return PracticeReviewSummary(asInt(j['count']) ?? 0, avg is num ? avg.toDouble() : double.tryParse(str(avg)));
+  }
+  final int count;
+  final double? average;
+
+  /// Average only counts once there are enough published reviews.
+  double? get visibleAverage => count >= minForAverage ? average : null;
+  String get label => ratingLabel(count, visibleAverage);
+}
+
+class PublicReview {
+  PublicReview(this.id, this.displayName, this.overall, this.text, this.practiceReply);
+  factory PublicReview.fromJson(Map<String, dynamic> j) => PublicReview(
+    str(j['id']),
+    str(j['displayName']).isEmpty ? anonymousName : str(j['displayName']),
+    asInt(j['overall']) ?? 0,
+    str(j['text']),
+    str(j['practiceReply']),
+  );
+  final String id;
+  final String displayName;
+  final int overall;
+  final String text;
+  final String practiceReply;
+}
+
+class PracticeReviewsPage {
+  PracticeReviewsPage(this.summary, this.reviews);
+  factory PracticeReviewsPage.fromJson(Map<String, dynamic> j) => PracticeReviewsPage(
+    PracticeReviewSummary.fromJson(j),
+    asList(j['reviews']).map(asMap).map(PublicReview.fromJson).toList(),
+  );
+  final PracticeReviewSummary summary;
+  final List<PublicReview> reviews;
+}
+
+String stars(int n) => '${'\u2605' * n.clamp(0, 5)}${'\u2606' * (5 - n.clamp(0, 5))}';

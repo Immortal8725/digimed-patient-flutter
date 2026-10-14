@@ -29,6 +29,19 @@ class ReviewsRepository {
   Future<void> delete(String id) async {
     await _api.delete('/api/reviews/$id');
   }
+
+  Future<PracticeReviewSummary> summary(String tenantId) async {
+    final data = asMap(await _api.get('/public/practices/review-summaries', query: {'tenantIds': tenantId}));
+    return PracticeReviewSummary.fromJson(asMap(data[tenantId]));
+  }
+
+  Future<PracticeReviewsPage> practiceReviews(String tenantId) async {
+    return PracticeReviewsPage.fromJson(asMap(await _api.get('/public/practices/$tenantId/reviews')));
+  }
+
+  Future<void> report(String id, String reason) async {
+    await _api.post('/api/reviews/$id/report', data: {'reason': reason});
+  }
 }
 
 final reviewsRepositoryProvider = Provider<ReviewsRepository>(

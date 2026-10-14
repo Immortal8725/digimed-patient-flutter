@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../reviews/practice_reviews_widgets.dart';
 import '../../core/json/json_values.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/widgets/status_views.dart';
@@ -128,6 +129,10 @@ class _ClinicScreenState extends ConsumerState<ClinicScreen> {
                 if (_info != null) Text(_info!),
                 if (_error != null) Text(_error!),
                 const SizedBox(height: 8),
+                if (firstString(_clinic, ['id', 'tenantId']).isNotEmpty) ...[
+                  PracticeReviewsSection(tenantId: firstString(_clinic, ['id', 'tenantId'])),
+                  const SizedBox(height: 8),
+                ],
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Date'),
