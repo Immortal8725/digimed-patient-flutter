@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../reviews/practice_reviews_widgets.dart';
 import '../../core/network/api_exception.dart';
 import 'find_care_repository.dart';
 
@@ -336,6 +337,7 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
             Text(provider.name, style: Theme.of(context).textTheme.titleMedium),
             Text(provider.specialty.isEmpty ? 'General practitioner' : provider.specialty),
             if (provider.clinicName.isNotEmpty) Text('Clinic: ${provider.clinicName}'),
+            if (provider.tenantId.isNotEmpty) PracticeRatingLine(tenantId: provider.tenantId),
             Text(
               [provider.address, provider.city, provider.province]
                   .where((part) => part.isNotEmpty)

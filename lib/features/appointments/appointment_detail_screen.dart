@@ -8,6 +8,8 @@ import '../../core/widgets/status_views.dart';
 import '../find_care/find_care_repository.dart';
 import 'appointment_models.dart';
 import 'appointments_repository.dart';
+import '../reviews/rate_visit_screen.dart';
+import '../reviews/reviews_repository.dart';
 
 class AppointmentDetailScreen extends ConsumerStatefulWidget {
   const AppointmentDetailScreen({super.key, required this.id});
@@ -22,6 +24,7 @@ class AppointmentDetailScreen extends ConsumerStatefulWidget {
 class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScreen> {
   bool _loading = true;
   bool _busy = false;
+  bool _canRate = false;
   String? _error;
   String? _info;
   Appointment? _appointment;
@@ -50,6 +53,14 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
         _loading = false;
         if (match == null) _error = 'That appointment was not found on your account.';
       });
+      if (match != null && match.status.toUpperCase() == 'COMPLETED') {
+        try {
+          final open = await ref.read(reviewsRepositoryProvider).eligible();
+          if (mounted) setState(() => _canRate = open.any((v) => v.appointmentId == widget.id));
+        } on ApiException {
+          // Rating is optional; ignore lookup errors.
+        }
+      }
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -308,6 +319,20 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                       onPressed: () => context.push('/telehealth/${visit.id}'),
                       child: const Text('Video visit'),
                     ),
+                ],
+                if (visit.status.toUpperCase() == 'COMPLETED' && _canRate) ...[
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: () async {
+                      final done = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => RateVisitScreen(appointmentId: visit.id, practiceName: visit.clinicName),
+                        ),
+                      );
+                      if (done == true && mounted) setState(() => _canRate = false);
+                    },
+                    child: const Text('Rate your visit'),
+                  ),
                 ],
                 const SizedBox(height: 8),
                 if (visit.intakeCompleted && !visit.intakeNeeded)

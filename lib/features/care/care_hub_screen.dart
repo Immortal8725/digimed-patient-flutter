@@ -16,6 +16,7 @@ class CareHubScreen extends StatelessWidget {
       ('Privacy notice', '/privacy', 'Confirm you have seen the notice'),
       ('Paperless consent', '/consent', 'Grant or withdraw data-processing consent'),
       ('Research and eConsent', '/research', 'Offers, profile, and study consent'),
+      ('My reviews', '/reviews', 'Rate your visit, go anonymous or delete'),
       ('My data rights', '/rights', 'Export a copy or ask about erasure'),
       ('Profile', '/profile', 'Email and verified phone'),
       ('Clinics', '/clinics', 'Choose the clinic on this account'),

@@ -121,6 +121,8 @@ class ApiClient {
     Map<String, dynamic>? query,
   }) => _send(() => _dio.put(path, data: data, queryParameters: query));
 
+  Future<Object?> delete(String path) => _send(() => _dio.delete(path));
+
   Future<Object?> _send(Future<Response<Object?>> Function() call) async {
     DioException? last;
     for (var attempt = 0; attempt < 3; attempt++) {
