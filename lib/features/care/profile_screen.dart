@@ -5,6 +5,7 @@ import '../../core/json/json_values.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/widgets/status_views.dart';
 import '../auth/auth_repository.dart';
+import '../medical_aid/medical_aid_card.dart';
 import 'care_repository.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -181,6 +182,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                const MedicalAidSection(),
               ],
             ),
     );
