@@ -11,6 +11,8 @@ class CareHubScreen extends StatelessWidget {
     const items = [
       ('Book appointment', '/book', 'Book at your clinic, in person or by video'),
       ('Medications', '/medications', 'Today\'s doses, taken, snooze, or skip'),
+      ('Dialysis transport', '/transport', 'Lifts, pickup time, driver ETA and GPS pin'),
+      ('Dialysis meals', '/meals', 'Allergies, diet and meal choice'),
       ('Intake form', '/intake', 'Tell the clinic why you are coming'),
       ('Notices', '/notifications', 'Approve or deny record access'),
       ('Privacy notice', '/privacy', 'Confirm you have seen the notice'),

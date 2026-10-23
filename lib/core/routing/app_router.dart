@@ -24,6 +24,8 @@ import '../../features/find_care/clinic_screen.dart';
 import '../../features/find_care/find_care_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/home/mission_screen.dart';
+import '../../features/renal/meals_screen.dart';
+import '../../features/renal/transport_screen.dart';
 import '../../features/reviews/my_reviews_screen.dart';
 import '../network/api_client.dart';
 import '../widgets/patient_shell.dart';
@@ -105,6 +107,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/consent', builder: (context, state) => const ConsentScreen()),
           GoRoute(path: '/research', builder: (context, state) => const ResearchScreen()),
           GoRoute(path: '/rights', builder: (context, state) => const RightsScreen()),
+          GoRoute(path: '/transport', builder: (context, state) => const TransportScreen()),
+          GoRoute(path: '/meals', builder: (context, state) => const MealsScreen()),
           GoRoute(path: '/reviews', builder: (context, state) => const MyReviewsScreen()),
           GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           GoRoute(path: '/clinics', builder: (context, state) => const ClinicsScreen()),
