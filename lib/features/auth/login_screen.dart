@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_exception.dart';
+import '../../core/widgets/brand_logo.dart';
 import 'auth_controller.dart';
 import 'auth_gate.dart';
 
@@ -68,8 +70,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Center(child: DigimedMark(size: 96)),
+                  const SizedBox(height: 16),
                   Text(
                     'DigiMed Connect',
+                    textAlign: TextAlign.center,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,

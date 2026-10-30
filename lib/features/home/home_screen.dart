@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/json/json_values.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/widgets/brand_logo.dart';
 import '../appointments/appointment_models.dart';
 import '../appointments/appointments_repository.dart';
 import '../care/care_repository.dart';
@@ -87,7 +89,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..sort((a, b) => '${a.date}${a.startTime}'.compareTo('${b.date}${b.startTime}'));
     final name = firstString(_profile, ['fullName', 'name']);
     return Scaffold(
-      appBar: AppBar(title: const Text('Home'), actions: const [AccountMenu()]),
+      appBar: AppBar(title: const DigimedLogo(size: 30, subtitle: 'Home'), actions: const [AccountMenu()]),
       body: _loading
           ? const LoadingView(label: 'Loading your care')
           : RefreshIndicator(

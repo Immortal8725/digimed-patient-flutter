@@ -3,7 +3,7 @@
     "short_name": "DigiMed",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0F766E",
+    "background_color": "#F5F7FA",
     "theme_color": "#0F766E",
     "description": "Patient app for DigiMed Connect clinics across South Africa.",
     "orientation": "portrait-primary",
