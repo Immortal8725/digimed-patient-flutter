@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -151,7 +154,12 @@ class _MedicalAidSectionState extends ConsumerState<MedicalAidSection> {
       });
       _fill(state.current);
     } on ApiException catch (e) {
-      if (mounted) setState(() { _loading = false; _error = e.message; });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.message;
+        });
+      }
     }
   }
 
@@ -179,7 +187,11 @@ class _MedicalAidSectionState extends ConsumerState<MedicalAidSection> {
       setState(() => _error = msg);
       return;
     }
-    setState(() { _busy = true; _error = null; _info = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+      _info = null;
+    });
     try {
       final state = await ref.read(medicalAidRepositoryProvider).save({
         'scheme': _scheme,
@@ -212,14 +224,14 @@ class _MedicalAidSectionState extends ConsumerState<MedicalAidSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Medical aid card', style: Theme.of(context).textTheme.titleMedium),
+        HeartHeader('Medical aid card'),
         const Text('Only you and the practices treating you can see these details.'),
         if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
         if (_info != null) Text(_info!),
         const SizedBox(height: 8),
         if (!_editing) ...[
           if (cur == null)
-            const Text('No medical aid details yet.')
+            const HeartEmptyBox('No medical aid details yet.')
           else ...[
             Text('Scheme: ${cur.schemeName}'),
             Text('Plan/option: ${cur.planOption.isEmpty ? 'Not set' : cur.planOption}'),
@@ -230,7 +242,10 @@ class _MedicalAidSectionState extends ConsumerState<MedicalAidSection> {
           ],
           const SizedBox(height: 8),
           FilledButton(
-            onPressed: () => setState(() { _editing = true; _info = null; }),
+            onPressed: () => setState(() {
+              _editing = true;
+              _info = null;
+            }),
             child: Text(cur == null ? 'Add details' : 'Change details'),
           ),
         ] else ...[
@@ -245,27 +260,58 @@ class _MedicalAidSectionState extends ConsumerState<MedicalAidSection> {
             onChanged: (v) => setState(() => _scheme = v ?? ''),
           ),
           if (_scheme == otherScheme)
-            TextField(controller: _other, decoration: const InputDecoration(labelText: 'Scheme name')),
-          TextField(controller: _plan, decoration: const InputDecoration(labelText: 'Plan/option')),
-          TextField(controller: _member, decoration: const InputDecoration(labelText: 'Membership number')),
-          TextField(controller: _dependant, decoration: const InputDecoration(labelText: 'Dependant code')),
-          TextField(controller: _mainName, decoration: const InputDecoration(labelText: 'Main member name')),
-          TextField(controller: _mainId, decoration: const InputDecoration(labelText: 'Main member ID number')),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, children: [
-            FilledButton(onPressed: _busy ? null : _save, child: const Text('Save')),
-            TextButton(
-              onPressed: _busy ? null : () { _fill(cur); setState(() { _editing = false; _error = null; }); },
-              child: const Text('Cancel'),
+            TextField(
+              controller: _other,
+              decoration: const InputDecoration(labelText: 'Scheme name'),
             ),
-          ]),
+          TextField(
+            controller: _plan,
+            decoration: const InputDecoration(labelText: 'Plan/option'),
+          ),
+          TextField(
+            controller: _member,
+            decoration: const InputDecoration(labelText: 'Membership number'),
+          ),
+          TextField(
+            controller: _dependant,
+            decoration: const InputDecoration(labelText: 'Dependant code'),
+          ),
+          TextField(
+            controller: _mainName,
+            decoration: const InputDecoration(labelText: 'Main member name'),
+          ),
+          TextField(
+            controller: _mainId,
+            decoration: const InputDecoration(labelText: 'Main member ID number'),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              FilledButton(onPressed: _busy ? null : _save, child: const Text('Save')),
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () {
+                        _fill(cur);
+                        setState(() {
+                          _editing = false;
+                          _error = null;
+                        });
+                      },
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
         ],
         if (history.isNotEmpty) ...[
           const SizedBox(height: 12),
           const Text('Previous details'),
           for (final h in history)
-            Text('${h.schemeName}${h.planOption.isEmpty ? '' : ', ${h.planOption}'}'
-                '${h.validTo == null ? '' : ' until ${h.validTo!.split('T').first}'}'),
+            Text(
+              '${h.schemeName}${h.planOption.isEmpty ? '' : ', ${h.planOption}'}'
+              '${h.validTo == null ? '' : ' until ${h.validTo!.split('T').first}'}',
+            ),
         ],
       ],
     );

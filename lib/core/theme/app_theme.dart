@@ -64,77 +64,87 @@ ThemeData buildDigimedTheme(Brightness brightness, {bool practice = false}) {
     outlineVariant: isDark ? const Color(0xFF253247) : DigimedBrand.border,
   );
   final cardColour = isDark ? DigimedBrand.darkSurface : DigimedBrand.surface;
+  // "My Heart" panel style from the website.
+  final panelColour = isDark ? const Color(0xFF101A2B) : const Color(0xFFEDEDED);
+  final innerColour = isDark ? const Color(0xFF1C2A40) : const Color(0xFFF0F0F0);
+  final accent = isDark ? const Color(0xFF5B8DF7) : const Color(0xFF1765F2);
   final headingColour = isDark ? DigimedBrand.darkText : DigimedBrand.heading;
   final base = ThemeData(useMaterial3: true, colorScheme: scheme, brightness: brightness);
   final text = base.textTheme.apply(bodyColor: scheme.onSurface, displayColor: headingColour);
 
   return base.copyWith(
-    scaffoldBackgroundColor: scheme.surface,
+    scaffoldBackgroundColor: panelColour,
     textTheme: text.copyWith(
       headlineMedium: text.headlineMedium?.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.3),
       titleLarge: text.titleLarge?.copyWith(fontWeight: FontWeight.w600),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: cardColour,
+      backgroundColor: panelColour,
       foregroundColor: headingColour,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
-      shape: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       titleTextStyle: text.titleLarge?.copyWith(color: headingColour, fontWeight: FontWeight.w600),
     ),
     cardTheme: CardThemeData(
-      elevation: 0,
+      elevation: 2,
+      shadowColor: isDark ? Colors.black54 : const Color(0x33000000),
       color: cardColour,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: scheme.outlineVariant),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: cardColour,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: scheme.outline),
+        borderRadius: BorderRadius.circular(24),
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: scheme.outline),
+        borderRadius: BorderRadius.circular(24),
+        borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: headingColour, width: 2),
+        borderRadius: BorderRadius.circular(24),
+        borderSide: BorderSide(color: accent, width: 2),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(48),
+        backgroundColor: accent,
+        foregroundColor: Colors.white,
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(44, 44),
+        backgroundColor: cardColour,
+        side: BorderSide(color: scheme.outlineVariant),
         textStyle: const TextStyle(fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(textStyle: const TextStyle(fontWeight: FontWeight.w600)),
     ),
     chipTheme: base.chipTheme.copyWith(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      side: BorderSide.none,
+      backgroundColor: innerColour,
       labelStyle: TextStyle(fontWeight: FontWeight.w600, color: scheme.onSurface),
     ),
+    listTileTheme: ListTileThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: accent),
     dividerTheme: DividerThemeData(color: scheme.outlineVariant),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: cardColour,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: scheme.primaryContainer,
+      indicatorColor: accent.withValues(alpha: 0.16),
       labelTextStyle: WidgetStatePropertyAll(
         TextStyle(fontSize: 12, color: scheme.onSurface),
       ),

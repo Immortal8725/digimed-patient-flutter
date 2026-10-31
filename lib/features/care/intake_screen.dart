@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -121,7 +123,8 @@ class _IntakeScreenState extends ConsumerState<IntakeScreen> {
           ? const LoadingView(label: 'Loading intake')
           : _error != null && _questions.isEmpty
           ? ErrorView(message: _error!, onRetry: _load)
-          : ListView(
+          : HeartFormPanel(
+              title: 'Intake Form',
               padding: const EdgeInsets.all(16),
               children: [
                 Text(_mode == 'RETURN_VISIT' ? 'Return visit' : 'First visit'),

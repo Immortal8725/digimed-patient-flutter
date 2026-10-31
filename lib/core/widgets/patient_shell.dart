@@ -33,7 +33,10 @@ class PatientShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final hideNav = location.contains('/chat') || location.startsWith('/telehealth');
+    // The home dashboard shows its own icon rail on wide screens, so the
+    // bottom bar is hidden there to avoid doubled navigation.
+    final railShows = location == '/home' && MediaQuery.sizeOf(context).width >= 760;
+    final hideNav = railShows || location.contains('/chat') || location.startsWith('/telehealth');
     final index = _index(location);
     return Scaffold(
       body: child,

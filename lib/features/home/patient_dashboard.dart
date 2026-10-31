@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/json/json_values.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_logo.dart';
+import '../../core/widgets/heart_ui.dart';
+
+export '../../core/widgets/heart_ui.dart';
 import '../appointments/appointment_models.dart';
 
 String _pad(int n) => n.toString().padLeft(2, '0');
@@ -87,24 +90,31 @@ class PatientDrawer extends StatelessWidget {
     for (final link in patientMenu) {
       if (link.section != section) {
         section = link.section;
-        children.add(Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Text(section, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        ));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text(
+              section,
+              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
+        );
       }
-      children.add(ListTile(
-        dense: true,
-        leading: Icon(link.icon),
-        title: Text(link.label),
-        selected: link.route == current,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        onTap: () {
-          Navigator.of(context).maybePop();
-          if (link.route != current) {
-            link.route == '/home' ? context.go(link.route) : context.push(link.route);
-          }
-        },
-      ));
+      children.add(
+        ListTile(
+          dense: true,
+          leading: Icon(link.icon),
+          title: Text(link.label),
+          selected: link.route == current,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          onTap: () {
+            Navigator.of(context).maybePop();
+            if (link.route != current) {
+              link.route == '/home' ? context.go(link.route) : context.push(link.route);
+            }
+          },
+        ),
+      );
     }
     return Drawer(
       child: SafeArea(
@@ -125,15 +135,6 @@ class PatientDrawer extends StatelessWidget {
 }
 
 /// Accent sampled from the website "My Heart" dashboard.
-class HeartColors {
-  static const accent = Color(0xFF1765F2);
-  static const darkAccent = Color(0xFF5B8DF7);
-  static Color panel(bool dark) => dark ? const Color(0xFF101A2B) : const Color(0xFFEDEDED);
-  static Color card(bool dark) => dark ? DigimedBrand.darkSurface : Colors.white;
-  static Color inner(bool dark) => dark ? const Color(0xFF1C2A40) : const Color(0xFFF0F0F0);
-  static Color accentOf(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? darkAccent : accent;
-}
-
 String initialsOf(String name) {
   final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
   if (parts.isEmpty) return '?';
@@ -151,140 +152,88 @@ class PatientDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return LayoutBuilder(builder: (context, box) {
-      final wide = box.maxWidth >= 760;
-      final upcoming = upcomingAppointments(data.appointments, now);
-      final latest = data.vitals.isEmpty ? const <String, dynamic>{} : data.vitals.first;
-      final hr = firstString(latest, ['heartRate']);
-      final main = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _TopBar(clinic: data.clinicName, name: firstString(data.profile, ['fullName', 'name'])),
-        const SizedBox(height: 16),
-        _Greeting(data: data),
-        if (data.error != null) ...[
-          const SizedBox(height: 8),
-          Text(data.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        ],
-        const SizedBox(height: 16),
-        if (wide)
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(flex: 3, child: _Section('Heart Conditions', _HeartTiles(latest: latest))),
-            const SizedBox(width: 16),
-            Expanded(flex: 2, child: _Section('My Schedule', _ScheduleCard(upcoming: upcoming, total: data.appointments.length))),
-          ])
-        else ...[
-          _Section('Heart Conditions', _HeartTiles(latest: latest)),
-          const SizedBox(height: 16),
-          _Section('My Schedule', _ScheduleCard(upcoming: upcoming, total: data.appointments.length)),
-          const SizedBox(height: 16),
-          _HeartRateCard(value: hr),
-        ],
-        const SizedBox(height: 16),
-        _BodyCarousel(data: data, heartRate: hr),
-        const SizedBox(height: 16),
-        _Section('My Information', _InfoCard(profile: data.profile)),
-        const SizedBox(height: 16),
-        _Section('Paperless Care', _ConsentCard(accepted: data.consentAccepted)),
-      ]);
-      final panel = Container(
-        decoration: BoxDecoration(
-          color: HeartColors.panel(dark),
-          borderRadius: BorderRadius.circular(wide ? 28 : 20),
-          border: Border.all(color: dark ? Colors.white10 : Colors.white, width: 2),
-          boxShadow: [
-            BoxShadow(color: dark ? Colors.black54 : const Color(0x22000000), blurRadius: 18, offset: const Offset(6, 6)),
-            if (!dark) const BoxShadow(color: Colors.white, blurRadius: 18, offset: Offset(-6, -6)),
+    return LayoutBuilder(
+      builder: (context, box) {
+        final wide = box.maxWidth >= 760;
+        final upcoming = upcomingAppointments(data.appointments, now);
+        final latest = data.vitals.isEmpty ? const <String, dynamic>{} : data.vitals.first;
+        final hr = firstString(latest, ['heartRate']);
+        final main = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TopBar(clinic: data.clinicName, name: firstString(data.profile, ['fullName', 'name'])),
+            const SizedBox(height: 16),
+            _Greeting(data: data),
+            if (data.error != null) ...[
+              const SizedBox(height: 8),
+              Text(data.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ],
+            const SizedBox(height: 16),
+            if (wide)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 3, child: HeartSection('Heart Conditions', _HeartTiles(latest: latest))),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: HeartSection(
+                      'My Schedule',
+                      _ScheduleCard(upcoming: upcoming, total: data.appointments.length),
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              HeartSection('Heart Conditions', _HeartTiles(latest: latest)),
+              const SizedBox(height: 16),
+              HeartSection('My Schedule', _ScheduleCard(upcoming: upcoming, total: data.appointments.length)),
+              const SizedBox(height: 16),
+              _HeartRateCard(value: hr),
+            ],
+            const SizedBox(height: 16),
+            _BodyCarousel(data: data, heartRate: hr),
+            const SizedBox(height: 16),
+            HeartSection('My Information', _InfoCard(profile: data.profile)),
+            const SizedBox(height: 16),
+            HeartSection('Paperless Care', _ConsentCard(accepted: data.consentAccepted)),
           ],
-        ),
-        padding: EdgeInsets.all(wide ? 20 : 14),
-        child: wide
-            ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _IconRail(onToggleTheme: onToggleTheme),
-                const SizedBox(width: 20),
-                Expanded(child: main),
-                const SizedBox(width: 20),
-                SizedBox(width: 260, child: _Rings(child: _HeartRateCard(value: hr))),
-              ])
-            : main,
-      );
-      final list = ListView(padding: EdgeInsets.all(wide ? 24 : 12), children: [panel]);
-      return onRefresh == null ? list : RefreshIndicator(onRefresh: onRefresh!, child: list);
-    });
-  }
-}
-
-class _Section extends StatelessWidget {
-  const _Section(this.title, this.child);
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(Icons.circle, size: 7, color: HeartColors.accentOf(context)),
-        const SizedBox(width: 6),
-        Flexible(child: Text(title, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600))),
-      ]),
-      const SizedBox(height: 10),
-      child,
-    ]);
-  }
-}
-
-class _SoftCard extends StatelessWidget {
-  const _SoftCard({required this.child, this.padding = const EdgeInsets.all(12), this.onTap});
-  final Widget child;
-  final EdgeInsets padding;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: HeartColors.card(dark),
-      borderRadius: BorderRadius.circular(14),
-      elevation: 0,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          padding: padding,
+        );
+        final panel = Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [BoxShadow(color: dark ? Colors.black26 : const Color(0x14000000), blurRadius: 10, offset: const Offset(0, 3))],
+            color: HeartColors.panel(dark),
+            borderRadius: BorderRadius.circular(wide ? 28 : 20),
+            border: Border.all(color: dark ? Colors.white10 : Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: dark ? Colors.black54 : const Color(0x22000000),
+                blurRadius: 18,
+                offset: const Offset(6, 6),
+              ),
+              if (!dark) const BoxShadow(color: Colors.white, blurRadius: 18, offset: Offset(-6, -6)),
+            ],
           ),
-          child: child,
-        ),
-      ),
+          padding: EdgeInsets.all(wide ? 20 : 14),
+          child: wide
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _IconRail(onToggleTheme: onToggleTheme),
+                    const SizedBox(width: 20),
+                    Expanded(child: main),
+                    const SizedBox(width: 20),
+                    SizedBox(
+                      width: 260,
+                      child: _Rings(child: _HeartRateCard(value: hr)),
+                    ),
+                  ],
+                )
+              : main,
+        );
+        final list = ListView(padding: EdgeInsets.all(wide ? 24 : 12), children: [panel]);
+        return onRefresh == null ? list : RefreshIndicator(onRefresh: onRefresh!, child: list);
+      },
     );
-  }
-}
-
-class _IconChip extends StatelessWidget {
-  const _IconChip(this.icon, {this.active = false, this.onTap, this.tooltip});
-  final IconData icon;
-  final bool active;
-  final VoidCallback? onTap;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = HeartColors.accentOf(context);
-    final chip = InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: active ? accent : HeartColors.inner(dark),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, size: 18, color: active ? Colors.white : Theme.of(context).colorScheme.onSurface),
-      ),
-    );
-    return tooltip == null ? chip : Tooltip(message: tooltip!, child: chip);
   }
 }
 
@@ -298,47 +247,73 @@ class _TopBar extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final accent = HeartColors.accentOf(context);
     final badge = clinic.isEmpty ? 'DM' : initialsOf(clinic);
-    return Row(children: [
-      Container(
-        width: 40,
-        height: 40,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: HeartColors.card(dark), shape: BoxShape.circle,
-            boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6)]),
-        child: Text.rich(TextSpan(children: [
-          TextSpan(text: badge, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-          TextSpan(text: '+', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: accent)),
-        ]), semanticsLabel: 'Clinic $clinic'),
-      ),
-      const SizedBox(width: 10),
-      Expanded(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => context.push('/find-care'),
-          child: Container(
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(color: HeartColors.card(dark), borderRadius: BorderRadius.circular(20)),
-            child: Row(children: [
-              Expanded(child: Text('Search care...', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13))),
-              const Icon(Icons.search, size: 18),
-            ]),
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: HeartColors.card(dark),
+            shape: BoxShape.circle,
+            boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6)],
+          ),
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: badge,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+                TextSpan(
+                  text: '+',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: accent),
+                ),
+              ],
+            ),
+            semanticsLabel: 'Clinic $clinic',
           ),
         ),
-      ),
-      const SizedBox(width: 8),
-      _IconChip(Icons.notifications_none, tooltip: 'Notifications', onTap: () => context.push('/notifications')),
-      const SizedBox(width: 8),
-      InkWell(
-        onTap: () => context.push('/profile'),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: accent.withValues(alpha: 0.14),
-          child: Text(initialsOf(name), style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 13)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => context.push('/find-care'),
+            child: Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(color: HeartColors.card(dark), borderRadius: BorderRadius.circular(20)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Search care...',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                    ),
+                  ),
+                  const Icon(Icons.search, size: 18),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
-    ]);
+        const SizedBox(width: 8),
+        HeartIconChip(Icons.notifications_none, tooltip: 'Notifications', onTap: () => context.push('/notifications')),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () => context.push('/profile'),
+          customBorder: const CircleBorder(),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: accent.withValues(alpha: 0.14),
+            child: Text(
+              initialsOf(name),
+              style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 13),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -350,15 +325,27 @@ class _Greeting extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final name = firstString(data.profile, ['fullName', 'name']);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('My Heart', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600)),
-      const SizedBox(height: 4),
-      Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [
-        Text(name.isEmpty ? 'Welcome Back!' : 'Welcome Back, $name!', style: theme.textTheme.bodyMedium),
-        if (data.clinicName.isNotEmpty) Text(data.clinicName, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        _StatusChip(data.connected ? 'Connected' : 'Offline', good: data.connected),
-      ]),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('My Heart', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            Text(name.isEmpty ? 'Welcome Back!' : 'Welcome Back, $name!', style: theme.textTheme.bodyMedium),
+            if (data.clinicName.isNotEmpty)
+              Text(
+                data.clinicName,
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            _StatusChip(data.connected ? 'Connected' : 'Offline', good: data.connected),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -375,18 +362,25 @@ class _IconRail extends StatelessWidget {
       (Icons.description_outlined, 'Intake Form', '/intake'),
       (Icons.person_outline, 'Profile', '/profile'),
     ];
-    return Column(children: [
-      const SizedBox(height: 70),
-      for (final i in items) ...[
-        _IconChip(i.$1, active: i.$3.isEmpty, tooltip: i.$2, onTap: i.$3.isEmpty ? null : () => i.$3 == '/home' ? context.go('/home') : context.push(i.$3)),
+    return Column(
+      children: [
+        const SizedBox(height: 70),
+        for (final i in items) ...[
+          HeartIconChip(
+            i.$1,
+            active: i.$3.isEmpty,
+            tooltip: i.$2,
+            onTap: i.$3.isEmpty ? null : () => i.$3 == '/home' ? context.go('/home') : context.push(i.$3),
+          ),
+          const SizedBox(height: 12),
+        ],
+        const SizedBox(width: 24, child: Divider()),
         const SizedBox(height: 12),
+        HeartIconChip(Icons.speed, tooltip: 'Mission control', onTap: () => context.push('/mission')),
+        const SizedBox(height: 12),
+        HeartIconChip(Icons.light_mode_outlined, tooltip: 'Theme', onTap: onToggleTheme),
       ],
-      const SizedBox(width: 24, child: Divider()),
-      const SizedBox(height: 12),
-      _IconChip(Icons.speed, tooltip: 'Mission control', onTap: () => context.push('/mission')),
-      const SizedBox(height: 12),
-      _IconChip(Icons.light_mode_outlined, tooltip: 'Theme', onTap: onToggleTheme),
-    ]);
+    );
   }
 }
 
@@ -399,17 +393,45 @@ class _HeartTiles extends StatelessWidget {
     String g(String k) => firstString(latest, [k]);
     final sys = g('bloodPressureSystolic'), dia = g('bloodPressureDiastolic');
     final tiles = <(String, IconData, String, String, bool)>[
-      ('Blood Pressure', Icons.water_drop_outlined, sys.isNotEmpty && dia.isNotEmpty ? '$sys/$dia mmHg' : '', 'No blood pressure recorded yet', false),
-      ('Heart Rate', Icons.favorite_border, g('heartRate').isEmpty ? '' : '${g('heartRate')} bpm', 'No heart rate recorded yet', true),
+      (
+        'Blood Pressure',
+        Icons.water_drop_outlined,
+        sys.isNotEmpty && dia.isNotEmpty ? '$sys/$dia mmHg' : '',
+        'No blood pressure recorded yet',
+        false,
+      ),
+      (
+        'Heart Rate',
+        Icons.favorite_border,
+        g('heartRate').isEmpty ? '' : '${g('heartRate')} bpm',
+        'No heart rate recorded yet',
+        true,
+      ),
       ('Weight', Icons.bar_chart, g('weight').isEmpty ? '' : '${g('weight')} kg', 'No weight recorded yet', false),
-      ('O₂ Saturation', Icons.dns_outlined, g('oxygenSaturation').isEmpty ? '' : '${g('oxygenSaturation')}%', 'No oxygen reading yet', false),
+      (
+        'O₂ Saturation',
+        Icons.dns_outlined,
+        g('oxygenSaturation').isEmpty ? '' : '${g('oxygenSaturation')}%',
+        'No oxygen reading yet',
+        false,
+      ),
     ];
-    return LayoutBuilder(builder: (context, box) {
-      final w = (box.maxWidth - 10) / 2;
-      return Wrap(spacing: 10, runSpacing: 10, children: [
-        for (final t in tiles) SizedBox(width: w, child: _HeartTile(t.$1, t.$2, t.$3, t.$4, active: t.$5)),
-      ]);
-    });
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = (box.maxWidth - 10) / 2;
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final t in tiles)
+              SizedBox(
+                width: w,
+                child: _HeartTile(t.$1, t.$2, t.$3, t.$4, active: t.$5),
+              ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -425,31 +447,57 @@ class _HeartTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
-    return _SoftCard(
+    return HeartCard(
       padding: const EdgeInsets.all(8),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          _IconChip(icon, active: active),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant), overflow: TextOverflow.ellipsis),
-              Text(value.isEmpty ? '—' : value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
-            ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HeartIconChip(icon, active: active),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      value.isEmpty ? '—' : value,
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ]),
-        const SizedBox(height: 8),
-        Container(
-          height: 64,
-          width: double.infinity,
-          alignment: Alignment.center,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: HeartColors.inner(dark), borderRadius: BorderRadius.circular(10)),
-          child: value.isEmpty
-              ? Text(empty, textAlign: TextAlign.center, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))
-              : Text('Latest clinic reading', textAlign: TextAlign.center, style: theme.textTheme.labelSmall?.copyWith(color: active ? HeartColors.accentOf(context) : theme.colorScheme.onSurfaceVariant)),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          Container(
+            height: 64,
+            width: double.infinity,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: HeartColors.inner(dark), borderRadius: BorderRadius.circular(10)),
+            child: value.isEmpty
+                ? Text(
+                    empty,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  )
+                : Text(
+                    'Latest clinic reading',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: active ? HeartColors.accentOf(context) : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -472,65 +520,95 @@ class _ScheduleCardState extends State<_ScheduleCard> {
     final list = widget.upcoming;
     final i = list.isEmpty ? 0 : _i.clamp(0, list.length - 1);
     final a = list.isEmpty ? null : list[i];
-    final doctors = {for (final x in list) if (x.doctorName.isNotEmpty) x.doctorName};
+    final doctors = {
+      for (final x in list)
+        if (x.doctorName.isNotEmpty) x.doctorName,
+    };
     final when = a == null
         ? 'Nothing booked'
-        : [a.date, a.startTime.length >= 5 ? a.startTime.substring(0, 5) : a.startTime].where((s) => s.isNotEmpty).join(' · ');
-    return _SoftCard(
+        : [
+            a.date,
+            a.startTime.length >= 5 ? a.startTime.substring(0, 5) : a.startTime,
+          ].where((s) => s.isNotEmpty).join(' · ');
+    return HeartCard(
       onTap: a == null ? null : () => context.push('/appointments/${a.id}'),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const _IconChip(Icons.calendar_today_outlined),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Next Check-up', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              Text(when, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-            ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const HeartIconChip(Icons.calendar_today_outlined),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Next Check-up',
+                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    Text(when, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ]),
-        const Divider(height: 20),
-        Row(children: [
-          IconButton(
-            tooltip: 'Previous',
-            icon: const Icon(Icons.arrow_back, size: 18),
-            onPressed: i > 0 ? () => setState(() => _i = i - 1) : null,
+          const Divider(height: 20),
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Previous',
+                icon: const Icon(Icons.arrow_back, size: 18),
+                onPressed: i > 0 ? () => setState(() => _i = i - 1) : null,
+              ),
+              Expanded(
+                child: Text(
+                  a == null ? '—' : (a.doctorName.isEmpty ? 'Visit' : a.doctorName),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Next',
+                icon: const Icon(Icons.arrow_forward, size: 18),
+                onPressed: i < list.length - 1 ? () => setState(() => _i = i + 1) : null,
+              ),
+            ],
           ),
-          Expanded(
+          Center(
             child: Text(
-              a == null ? '—' : (a.doctorName.isEmpty ? 'Visit' : a.doctorName),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-              overflow: TextOverflow.ellipsis,
+              doctors.isEmpty ? 'No doctors linked yet' : doctors.join(', '),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
           ),
-          IconButton(
-            tooltip: 'Next',
-            icon: const Icon(Icons.arrow_forward, size: 18),
-            onPressed: i < list.length - 1 ? () => setState(() => _i = i + 1) : null,
+          const SizedBox(height: 4),
+          Center(
+            child: Text(
+              '${list.length} upcoming · ${widget.total} total',
+              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
           ),
-        ]),
-        Center(
-          child: Text(
-            doctors.isEmpty ? 'No doctors linked yet' : doctors.join(', '),
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: HeartColors.accentOf(context),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(44),
+              ),
+              onPressed: () => context.push('/book'),
+              child: const Row(
+                children: [
+                  Expanded(child: Text('Consult Now')),
+                  Icon(Icons.arrow_forward, size: 18),
+                ],
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Center(
-          child: Text('${list.length} upcoming · ${widget.total} total',
-              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: HeartColors.accentOf(context), foregroundColor: Colors.white, minimumSize: const Size.fromHeight(44)),
-            onPressed: () => context.push('/book'),
-            child: const Row(children: [Expanded(child: Text('Consult Now')), Icon(Icons.arrow_forward, size: 18)]),
-          ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -543,20 +621,41 @@ class _HeartRateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = HeartColors.accentOf(context);
-    return _SoftCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(Icons.favorite, color: accent),
-          const SizedBox(width: 8),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Heart Rate', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            Text(value.isEmpty ? 'No reading yet' : '$value bpm', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-          ]),
-        ]),
-        const SizedBox(height: 6),
-        SizedBox(height: 32, width: double.infinity, child: CustomPaint(painter: _TracePainter(accent))),
-        Text('Illustrative trace', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-      ]),
+    return HeartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.favorite, color: accent),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Heart Rate',
+                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                  Text(
+                    value.isEmpty ? 'No reading yet' : '$value bpm',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 32,
+            width: double.infinity,
+            child: CustomPaint(painter: _TracePainter(accent)),
+          ),
+          Text(
+            'Illustrative trace',
+            style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -575,7 +674,13 @@ class _TracePainter extends CustomPainter {
       path.lineTo(w * pts[i], h * ys[i]);
     }
     path.lineTo(w, mid);
-    canvas.drawPath(path, Paint()..color = color..strokeWidth = 1.6..style = PaintingStyle.stroke);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..strokeWidth = 1.6
+        ..style = PaintingStyle.stroke,
+    );
   }
 
   @override
@@ -590,22 +695,27 @@ class _Rings extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     Widget ring(double s) => Container(
-          width: s,
-          height: s,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: HeartColors.panel(dark),
-            border: Border.all(color: dark ? Colors.white10 : Colors.white, width: 2),
-            boxShadow: [BoxShadow(color: dark ? Colors.black45 : const Color(0x18000000), blurRadius: 16, offset: const Offset(4, 4))],
-          ),
-        );
+      width: s,
+      height: s,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: HeartColors.panel(dark),
+        border: Border.all(color: dark ? Colors.white10 : Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(color: dark ? Colors.black45 : const Color(0x18000000), blurRadius: 16, offset: const Offset(4, 4)),
+        ],
+      ),
+    );
     return SizedBox(
       height: 520,
-      child: Stack(alignment: Alignment.center, children: [
-        Positioned(top: 120, child: ring(250)),
-        Positioned(top: 150, child: ring(190)),
-        Positioned(bottom: 0, left: 0, right: 0, child: child),
-      ]),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(top: 120, child: ring(250)),
+          Positioned(top: 150, child: ring(190)),
+          Positioned(bottom: 0, left: 0, right: 0, child: child),
+        ],
+      ),
     );
   }
 }
@@ -630,8 +740,11 @@ class _BodyCarouselState extends State<_BodyCarousel> {
 
   void _step(double by) {
     if (!_ctrl.hasClients) return;
-    _ctrl.animateTo((_ctrl.offset + by).clamp(0, _ctrl.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+    _ctrl.animateTo(
+      (_ctrl.offset + by).clamp(0, _ctrl.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -639,36 +752,59 @@ class _BodyCarouselState extends State<_BodyCarousel> {
     final d = widget.data;
     final cards = <(String, String, IconData, String)>[
       ('My Records', 'Paperless care', Icons.folder_open_outlined, '/notifications'),
-      ('My Heart', widget.heartRate.isEmpty ? 'No reading yet' : '${widget.heartRate} bpm', Icons.favorite_border, '/mission'),
-      ('My Medications', d.dosesToday > 0 ? '${d.dosesToday} doses due today' : "Today's doses", Icons.medication_outlined, '/medications'),
+      (
+        'My Heart',
+        widget.heartRate.isEmpty ? 'No reading yet' : '${widget.heartRate} bpm',
+        Icons.favorite_border,
+        '/mission',
+      ),
+      (
+        'My Medications',
+        d.dosesToday > 0 ? '${d.dosesToday} doses due today' : "Today's doses",
+        Icons.medication_outlined,
+        '/medications',
+      ),
       ('My Kidneys', 'Dialysis lifts and meals', Icons.water_drop_outlined, '/mission'),
     ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Expanded(
-          child: Row(children: [
-            Icon(Icons.circle, size: 7, color: HeartColors.accentOf(context)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(Icons.circle, size: 7, color: HeartColors.accentOf(context)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'My Body Condition',
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            HeartIconChip(Icons.arrow_back, tooltip: 'Scroll left', onTap: () => _step(-160)),
             const SizedBox(width: 6),
-            Flexible(child: Text('My Body Condition', overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600))),
-          ]),
+            HeartIconChip(Icons.arrow_forward, tooltip: 'Scroll right', onTap: () => _step(160)),
+          ],
         ),
-        _IconChip(Icons.arrow_back, tooltip: 'Scroll left', onTap: () => _step(-160)),
-        const SizedBox(width: 6),
-        _IconChip(Icons.arrow_forward, tooltip: 'Scroll right', onTap: () => _step(160)),
-      ]),
-      const SizedBox(height: 10),
-      SizedBox(
-        height: 150,
-        child: ListView.separated(
-          controller: _ctrl,
-          scrollDirection: Axis.horizontal,
-          itemCount: cards.length,
-          padding: const EdgeInsets.only(bottom: 6, right: 4),
-          separatorBuilder: (_, _) => const SizedBox(width: 10),
-          itemBuilder: (context, i) => SizedBox(width: 140, child: _BodyCard(cards[i])),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 150,
+          child: ListView.separated(
+            controller: _ctrl,
+            scrollDirection: Axis.horizontal,
+            itemCount: cards.length,
+            padding: const EdgeInsets.only(bottom: 6, right: 4),
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            itemBuilder: (context, i) => SizedBox(width: 140, child: _BodyCard(cards[i])),
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -681,33 +817,51 @@ class _BodyCard extends StatelessWidget {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
     final accent = HeartColors.accentOf(context);
-    return _SoftCard(
+    return HeartCard(
       padding: const EdgeInsets.all(6),
       onTap: () => context.push(c.$4),
-      child: Column(children: [
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(color: HeartColors.inner(dark), borderRadius: BorderRadius.circular(10)),
-            child: Icon(c.$3, size: 30, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Row(children: [
+      child: Column(
+        children: [
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(c.$1, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
-              Text(c.$2, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontSize: 10), overflow: TextOverflow.ellipsis),
-            ]),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(color: HeartColors.inner(dark), borderRadius: BorderRadius.circular(10)),
+              child: Icon(c.$3, size: 30, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            ),
           ),
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(6)),
-            child: const Icon(Icons.north_east, size: 14, color: Colors.white),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c.$1,
+                      style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      c.$2,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.north_east, size: 14, color: Colors.white),
+              ),
+            ],
           ),
-        ]),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -725,8 +879,15 @@ class _StatusChip extends StatelessWidget {
         : (dark ? const Color(0xFFFBBF24) : const Color(0xFF92400E));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: fg), color: fg.withValues(alpha: 0.08)),
-      child: Text(label, style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: fg),
+        color: fg.withValues(alpha: 0.08),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -742,11 +903,16 @@ class _Row extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(children: [
-        SizedBox(width: 96, child: Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
-        Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
-        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-      ]),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 96,
+            child: Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+        ],
+      ),
     );
   }
 }
@@ -762,19 +928,34 @@ class _InfoCard extends StatelessWidget {
     final level = v(['coverageLevel']).toUpperCase();
     final phone = v(['phone']);
     final verified = phone.isNotEmpty && asBool(profile['phoneVerified']);
-    return _SoftCard(
+    return HeartCard(
       onTap: () => context.push('/profile'),
-      child: Column(children: [
-        _Row('Name', v(['fullName', 'name']).isEmpty ? 'Not on file' : v(['fullName', 'name'])),
-        _Row('Medical aid', aid.isEmpty ? 'N/A' : aid,
+      child: Column(
+        children: [
+          _Row('Name', v(['fullName', 'name']).isEmpty ? 'Not on file' : v(['fullName', 'name'])),
+          _Row(
+            'Medical aid',
+            aid.isEmpty ? 'N/A' : aid,
             trailing: level.isEmpty
                 ? null
-                : _StatusChip(level == 'FULL' ? 'Full cover' : level == 'PARTIAL' ? 'Partial cover' : 'No cover', good: level == 'FULL')),
-        if (v(['planClass', 'planName']).isNotEmpty) _Row('Plan', v(['planClass', 'planName'])),
-        _Row('Email', v(['email']).isEmpty ? 'Not on file' : v(['email'])),
-        _Row('Phone', phone.isEmpty ? 'Not on file' : phone,
-            trailing: phone.isEmpty ? null : _StatusChip(verified ? 'Verified' : 'Not verified', good: verified)),
-      ]),
+                : _StatusChip(
+                    level == 'FULL'
+                        ? 'Full cover'
+                        : level == 'PARTIAL'
+                        ? 'Partial cover'
+                        : 'No cover',
+                    good: level == 'FULL',
+                  ),
+          ),
+          if (v(['planClass', 'planName']).isNotEmpty) _Row('Plan', v(['planClass', 'planName'])),
+          _Row('Email', v(['email']).isEmpty ? 'Not on file' : v(['email'])),
+          _Row(
+            'Phone',
+            phone.isEmpty ? 'Not on file' : phone,
+            trailing: phone.isEmpty ? null : _StatusChip(verified ? 'Verified' : 'Not verified', good: verified),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -790,12 +971,14 @@ class _ConsentCard extends StatelessWidget {
       false => 'You have not given paperless consent yet.',
       null => 'Consent status could not be loaded.',
     };
-    return _SoftCard(
+    return HeartCard(
       onTap: () => context.push('/consent'),
-      child: Row(children: [
-        Expanded(child: Text(text)),
-        if (accepted != null) _StatusChip(accepted! ? 'Consent given' : 'Not given', good: accepted!),
-      ]),
+      child: Row(
+        children: [
+          Expanded(child: Text(text)),
+          if (accepted != null) _StatusChip(accepted! ? 'Consent given' : 'Not given', good: accepted!),
+        ],
+      ),
     );
   }
 }

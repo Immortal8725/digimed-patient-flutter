@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -79,9 +82,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
         _tenant = tenant;
         _doctors = doctors;
         _existing = existing;
-        _doctorId = doctors.length == 1
-            ? firstString(doctors.first, ['id', 'userId', 'doctorId'])
-            : '';
+        _doctorId = doctors.length == 1 ? firstString(doctors.first, ['id', 'userId', 'doctorId']) : '';
         _loading = false;
       });
     } on ApiException catch (error) {
@@ -140,10 +141,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Back')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm booking'),
-          ),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirm booking')),
         ],
       ),
     );
@@ -153,15 +151,17 @@ class _BookScreenState extends ConsumerState<BookScreen> {
       _error = null;
     });
     try {
-      final receipt = await ref.read(findCareRepositoryProvider).book(
-        doctorId: _doctorId,
-        date: _date,
-        startTime: _start,
-        endTime: _end,
-        modality: _modality,
-        notes: _notes,
-        preferredService: _service,
-      );
+      final receipt = await ref
+          .read(findCareRepositoryProvider)
+          .book(
+            doctorId: _doctorId,
+            date: _date,
+            startTime: _start,
+            endTime: _end,
+            modality: _modality,
+            notes: _notes,
+            preferredService: _service,
+          );
       if (!mounted) return;
       setState(() {
         _busy = false;
@@ -196,9 +196,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  firstString(_tenant, ['name']).isEmpty
-                      ? 'Booking portal'
-                      : firstString(_tenant, ['name']),
+                  firstString(_tenant, ['name']).isEmpty ? 'Booking portal' : firstString(_tenant, ['name']),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
@@ -227,18 +225,13 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                   const SizedBox(height: 12),
                   Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   if (_tenantId.isEmpty)
-                    TextButton(
-                      onPressed: () => context.push('/clinics'),
-                      child: const Text('Choose a clinic'),
-                    ),
+                    TextButton(onPressed: () => context.push('/clinics'), child: const Text('Choose a clinic')),
                 ],
                 if (_info != null) ...[
                   const SizedBox(height: 12),
                   Text(_info!),
                   TextButton(
-                    onPressed: () => context.push(
-                      '/intake?tenantId=$_tenantId',
-                    ),
+                    onPressed: () => context.push('/intake?tenantId=$_tenantId'),
                     child: const Text('Complete intake'),
                   ),
                 ],
@@ -293,9 +286,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                     DropdownMenuItem(value: 'IN_PERSON', child: Text('In person')),
                     DropdownMenuItem(value: 'VIDEO', child: Text('Video')),
                   ],
-                  onChanged: blocked || !open
-                      ? null
-                      : (value) => setState(() => _modality = value ?? 'IN_PERSON'),
+                  onChanged: blocked || !open ? null : (value) => setState(() => _modality = value ?? 'IN_PERSON'),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -316,7 +307,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                   onChanged: (value) => _notes = value,
                 ),
                 const SizedBox(height: 16),
-                Text('Open slots', style: Theme.of(context).textTheme.titleMedium),
+                HeartHeader('Open slots'),
                 const SizedBox(height: 8),
                 if (_freeSlots.isNotEmpty)
                   Wrap(
@@ -340,7 +331,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                     ],
                   )
                 else if (_hours.isEmpty)
-                  const Text('No booking slots are configured yet. You can still type a time.')
+                  const HeartEmptyBox('No booking slots are configured yet. You can still type a time.')
                 else
                   Wrap(
                     spacing: 8,
@@ -388,10 +379,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                   child: Text(_busy ? 'Booking...' : 'Review booking'),
                 ),
                 if (blocked)
-                  TextButton(
-                    onPressed: () => context.go('/appointments'),
-                    child: const Text('Cancel or reschedule'),
-                  ),
+                  TextButton(onPressed: () => context.go('/appointments'), child: const Text('Cancel or reschedule')),
               ],
             ),
     );

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -62,16 +65,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final api = ref.read(apiClientProvider);
     try {
       final clinicsData = await api.get('/public/clinics');
-      final clinics = asList(clinicsData)
-          .map(asMap)
-          .where((clinic) {
-            final name = firstString(clinic, ['name']);
-            if (name.isEmpty) return false;
-            final type = firstString(clinic, ['tenantType', 'tenant_type'])
-                .toUpperCase();
-            return type.isEmpty || type == 'CLINIC' || type == 'RESEARCH';
-          })
-          .toList();
+      final clinics = asList(clinicsData).map(asMap).where((clinic) {
+        final name = firstString(clinic, ['name']);
+        if (name.isEmpty) return false;
+        final type = firstString(clinic, ['tenantType', 'tenant_type']).toUpperCase();
+        return type.isEmpty || type == 'CLINIC' || type == 'RESEARCH';
+      }).toList();
       if (!mounted) return;
       setState(() => _clinics = clinics);
     } catch (error) {
@@ -79,9 +78,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       setState(() {
         _clinics = [];
         _clinicsUnavailable = true;
-        _error = error is ApiException
-            ? error.message
-            : 'Clinics could not be loaded. Try again in a moment.';
+        _error = error is ApiException ? error.message : 'Clinics could not be loaded. Try again in a moment.';
       });
     }
     try {
@@ -109,15 +106,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       _error = null;
     });
     try {
-      final challenge = await ref.read(authRepositoryProvider).requestOtp(
-        phone: _phone.text.trim(),
-        email: _email.text,
-        clinicId: _clinicId,
-        purpose: 'signup-phone',
-      );
-      final preview = challenge.previewCode.isEmpty
-          ? ''
-          : ' Code: ${challenge.previewCode}.';
+      final challenge = await ref
+          .read(authRepositoryProvider)
+          .requestOtp(phone: _phone.text.trim(), email: _email.text, clinicId: _clinicId, purpose: 'signup-phone');
+      final preview = challenge.previewCode.isEmpty ? '' : ' Code: ${challenge.previewCode}.';
       setState(() {
         _otpHint =
             'A code was sent to ${challenge.maskedPhone.isEmpty ? 'your phone' : challenge.maskedPhone}.$preview';
@@ -135,11 +127,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       _error = null;
     });
     try {
-      final token = await ref.read(authRepositoryProvider).verifyOtp(
-        phone: _phone.text.trim(),
-        code: _otp.text,
-        purpose: 'signup-phone',
-      );
+      final token = await ref
+          .read(authRepositoryProvider)
+          .verifyOtp(phone: _phone.text.trim(), code: _otp.text, purpose: 'signup-phone');
       setState(() => _verificationToken = token);
     } on ApiException catch (error) {
       setState(() => _error = error.message);
@@ -151,10 +141,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Future<void> _submit() async {
     final id = _idNumber.text.trim();
     if (!_consent) {
-      setState(
-        () => _error =
-            'Accept the data-processing and privacy notice to create an account.',
-      );
+      setState(() => _error = 'Accept the data-processing and privacy notice to create an account.');
       return;
     }
     if (_clinicId == null) {
@@ -191,13 +178,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         'medicalAid': _aid ?? '',
         'idNumber': id,
         'consentAccepted': true,
-        if (_verificationToken != null)
-          'phoneVerificationToken': _verificationToken,
+        if (_verificationToken != null) 'phoneVerificationToken': _verificationToken,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patient account created. You can sign in now.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Patient account created. You can sign in now.')));
       context.go('/login');
     } on ApiException catch (error) {
       setState(() => _error = error.message);
@@ -213,7 +198,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: ListView(
+              child: HeartFormPanel(
+                title: 'Your Details',
                 padding: const EdgeInsets.all(20),
                 children: [
                   const Text(
@@ -227,14 +213,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         const Text(
                           'Clinics could not be loaded. The list is still required before you can create an account.',
                         ),
-                        TextButton(
-                          onPressed: _loading ? null : _load,
-                          child: const Text('Try again'),
-                        ),
+                        TextButton(onPressed: _loading ? null : _load, child: const Text('Try again')),
                       ],
                     )
                   else if (_clinics.isEmpty)
-                    const Text('No clinics are open for signup right now.')
+                    const HeartEmptyBox('No clinics are open for signup right now.')
                   else
                     DropdownButtonFormField<String>(
                       initialValue: _clinicId,
@@ -284,18 +267,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      OutlinedButton(
-                        onPressed: _busy ? null : _requestOtp,
-                        child: const Text('Send SMS code'),
-                      ),
-                      if (_verificationToken != null)
-                        const Chip(label: Text('Phone verified')),
+                      OutlinedButton(onPressed: _busy ? null : _requestOtp, child: const Text('Send SMS code')),
+                      if (_verificationToken != null) const Chip(label: Text('Phone verified')),
                     ],
                   ),
-                  if (_otpHint != null) ...[
-                    const SizedBox(height: 8),
-                    Text(_otpHint!),
-                  ],
+                  if (_otpHint != null) ...[const SizedBox(height: 8), Text(_otpHint!)],
                   const SizedBox(height: 8),
                   TextField(
                     controller: _otp,
@@ -304,21 +280,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: _busy ? null : _verifyOtp,
-                      child: const Text('Verify code'),
-                    ),
+                    child: TextButton(onPressed: _busy ? null : _verifyOtp, child: const Text('Verify code')),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: _aid,
-                    decoration: const InputDecoration(
-                      labelText: 'Medical aid (optional)',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Medical aid (optional)'),
                     items: [
                       const DropdownMenuItem(value: '', child: Text('None / not a member')),
-                      for (final aid in _aids)
-                        DropdownMenuItem(value: aid, child: Text(aid)),
+                      for (final aid in _aids) DropdownMenuItem(value: aid, child: Text(aid)),
                     ],
                     onChanged: (value) => setState(() => _aid = value),
                   ),
@@ -326,34 +296,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   TextField(
                     controller: _idNumber,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'SA ID number (optional)',
-                    ),
+                    decoration: const InputDecoration(labelText: 'SA ID number (optional)'),
                   ),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
                     value: _consent,
                     onChanged: (value) => setState(() => _consent = value ?? false),
-                    title: const Text(
-                      'I accept the data-processing and privacy notice (POPIA).',
-                    ),
+                    title: const Text('I accept the data-processing and privacy notice (POPIA).'),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 8),
-                    Text(
-                      _error!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
-                    ),
+                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ],
                   const SizedBox(height: 12),
                   FilledButton(
                     onPressed: _busy ? null : _submit,
                     child: Text(_busy ? 'Creating account...' : 'Create account'),
                   ),
-                  TextButton(
-                    onPressed: () => context.go('/login'),
-                    child: const Text('I already have an account'),
-                  ),
+                  TextButton(onPressed: () => context.go('/login'), child: const Text('I already have an account')),
                 ],
               ),
             ),

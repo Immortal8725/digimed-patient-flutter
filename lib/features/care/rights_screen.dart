@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -70,9 +73,7 @@ class _RightsScreenState extends ConsumerState<RightsScreen> {
         builder: (context) => AlertDialog(
           title: const Text('Your data copy'),
           content: SingleChildScrollView(child: SelectableText(text)),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-          ],
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
         ),
       );
     } on ApiException catch (error) {
@@ -92,10 +93,7 @@ class _RightsScreenState extends ConsumerState<RightsScreen> {
       await ref.read(careRepositoryProvider).erasureRequest(_reason.text.trim());
       _reason.clear();
       if (!mounted) return;
-      setState(
-        () => _info =
-            'Erasure request sent. The clinic still holds the record until they act on it.',
-      );
+      setState(() => _info = 'Erasure request sent. The clinic still holds the record until they act on it.');
       await _load();
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -110,7 +108,8 @@ class _RightsScreenState extends ConsumerState<RightsScreen> {
       appBar: AppBar(title: const Text('My data rights')),
       body: _loading
           ? const LoadingView(label: 'Loading requests')
-          : ListView(
+          : HeartFormPanel(
+              title: 'My Data Rights',
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
@@ -119,23 +118,17 @@ class _RightsScreenState extends ConsumerState<RightsScreen> {
                 if (_info != null) Text(_info!),
                 if (_error != null) Text(_error!),
                 const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: _busy ? null : _export,
-                  child: const Text('Copy my data'),
-                ),
+                FilledButton(onPressed: _busy ? null : _export, child: const Text('Copy my data')),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _reason,
                   decoration: const InputDecoration(labelText: 'Reason for erasure request'),
                 ),
                 const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: _busy ? null : _erase,
-                  child: const Text('Send erasure request'),
-                ),
+                OutlinedButton(onPressed: _busy ? null : _erase, child: const Text('Send erasure request')),
                 const SizedBox(height: 16),
-                Text('Requests', style: Theme.of(context).textTheme.titleMedium),
-                if (_requests.isEmpty) const Text('No requests yet.'),
+                HeartHeader('Requests'),
+                if (_requests.isEmpty) const HeartEmptyBox('No requests yet.'),
                 for (final request in _requests)
                   ListTile(
                     contentPadding: EdgeInsets.zero,

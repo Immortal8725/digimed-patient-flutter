@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/api_exception.dart';
@@ -97,10 +100,9 @@ class _MyReviewsScreenState extends ConsumerState<MyReviewsScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  if (_error != null)
-                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  Text('Rate your visit', style: Theme.of(context).textTheme.titleMedium),
-                  if (_eligible.isEmpty) const Text('No completed visits waiting for a rating.'),
+                  if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  HeartHeader('Rate your visit'),
+                  if (_eligible.isEmpty) const HeartEmptyBox('No completed visits waiting for a rating.'),
                   for (final v in _eligible)
                     Card(
                       child: ListTile(
@@ -110,8 +112,8 @@ class _MyReviewsScreenState extends ConsumerState<MyReviewsScreen> {
                       ),
                     ),
                   const SizedBox(height: 16),
-                  Text('Reviews you wrote', style: Theme.of(context).textTheme.titleMedium),
-                  if (_mine.isEmpty) const Text('You have not written any reviews yet.'),
+                  HeartHeader('Reviews you wrote'),
+                  if (_mine.isEmpty) const HeartEmptyBox('You have not written any reviews yet.'),
                   for (final r in _mine)
                     Card(
                       child: Padding(
@@ -119,9 +121,13 @@ class _MyReviewsScreenState extends ConsumerState<MyReviewsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(r.practiceName.isEmpty ? 'Practice' : r.practiceName,
-                                style: Theme.of(context).textTheme.titleSmall),
-                            Text('${'★' * r.overall}${'☆' * (5 - r.overall)}  ${reviewStatusLabels[r.status] ?? r.status}'),
+                            Text(
+                              r.practiceName.isEmpty ? 'Practice' : r.practiceName,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(
+                              '${'★' * r.overall}${'☆' * (5 - r.overall)}  ${reviewStatusLabels[r.status] ?? r.status}',
+                            ),
                             if (r.text.isNotEmpty) Text(r.text),
                             Text('Shown as: ${r.displayName}', style: Theme.of(context).textTheme.bodySmall),
                             if (r.rejectionReason.isNotEmpty) Text('Reason: ${r.rejectionReason}'),
@@ -129,7 +135,8 @@ class _MyReviewsScreenState extends ConsumerState<MyReviewsScreen> {
                               children: [
                                 if (r.showName)
                                   TextButton(
-                                    onPressed: () => _act(() => repo.withdrawName(r.id), 'Your review is now anonymous.'),
+                                    onPressed: () =>
+                                        _act(() => repo.withdrawName(r.id), 'Your review is now anonymous.'),
                                     child: const Text('Go anonymous'),
                                   ),
                                 TextButton(onPressed: () => _delete(r), child: const Text('Delete')),

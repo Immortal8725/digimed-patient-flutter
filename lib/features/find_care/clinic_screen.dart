@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -88,21 +91,16 @@ class _ClinicScreenState extends ConsumerState<ClinicScreen> {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Back')),
-            FilledButton(
-              onPressed: accepted ? () => Navigator.pop(context, true) : null,
-              child: const Text('Book'),
-            ),
+            FilledButton(onPressed: accepted ? () => Navigator.pop(context, true) : null, child: const Text('Book')),
           ],
         ),
       ),
     );
     if (confirmed != true || !mounted) return;
     try {
-      final receipt = await ref.read(findCareRepositoryProvider).book(
-        doctorId: doctorId,
-        date: _date,
-        startTime: start.length >= 5 ? start.substring(0, 5) : start,
-      );
+      final receipt = await ref
+          .read(findCareRepositoryProvider)
+          .book(doctorId: doctorId, date: _date, startTime: start.length >= 5 ? start.substring(0, 5) : start);
       if (!mounted) return;
       setState(() => _info = 'Visit booked.\n${receipt.describe()}');
     } on ApiException catch (error) {
@@ -124,8 +122,7 @@ class _ClinicScreenState extends ConsumerState<ClinicScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(firstString(_clinic, ['city', 'province', 'address'])),
-                if (!bookingEnabled(_clinic))
-                  const Text('Online booking is currently disabled for this clinic.'),
+                if (!bookingEnabled(_clinic)) const Text('Online booking is currently disabled for this clinic.'),
                 if (_info != null) Text(_info!),
                 if (_error != null) Text(_error!),
                 const SizedBox(height: 8),
@@ -152,12 +149,9 @@ class _ClinicScreenState extends ConsumerState<ClinicScreen> {
                     }
                   },
                 ),
-                if (_doctors.isEmpty) const Text('No doctors were listed for this clinic.'),
+                if (_doctors.isEmpty) const HeartEmptyBox('No doctors were listed for this clinic.'),
                 for (final doctor in _doctors) _doctorTile(doctor),
-                TextButton(
-                  onPressed: () => context.go('/appointments'),
-                  child: const Text('See my appointments'),
-                ),
+                TextButton(onPressed: () => context.go('/appointments'), child: const Text('See my appointments')),
               ],
             ),
     );
@@ -174,19 +168,10 @@ class _ClinicScreenState extends ConsumerState<ClinicScreen> {
           children: [
             Text(firstString(doctor, ['fullName', 'name'])),
             Text(firstString(doctor, ['specialty'])),
-            TextButton(
-              onPressed: id.isEmpty ? null : () => _loadSlots(id),
-              child: const Text('Show open slots'),
-            ),
+            TextButton(onPressed: id.isEmpty ? null : () => _loadSlots(id), child: const Text('Show open slots')),
             Wrap(
               spacing: 8,
-              children: [
-                for (final slot in slots)
-                  OutlinedButton(
-                    onPressed: () => _book(id, slot),
-                    child: Text(slot),
-                  ),
-              ],
+              children: [for (final slot in slots) OutlinedButton(onPressed: () => _book(id, slot), child: Text(slot))],
             ),
           ],
         ),

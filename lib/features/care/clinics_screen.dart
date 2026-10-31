@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -49,10 +52,7 @@ class _ClinicsScreenState extends ConsumerState<ClinicsScreen> {
       final result = await ref.read(careRepositoryProvider).selectClinic(id);
       final token = firstString(result, ['token']);
       if (token.isNotEmpty) {
-        await ref.read(authControllerProvider.notifier).rememberToken(
-          token,
-          tenantId: id,
-        );
+        await ref.read(authControllerProvider.notifier).rememberToken(token, tenantId: id);
       }
       if (mounted) {
         setState(() => _info = 'Clinic set to ${firstString(clinic, ['name', 'clinicName'])}.');
@@ -73,15 +73,17 @@ class _ClinicsScreenState extends ConsumerState<ClinicsScreen> {
               children: [
                 if (_info != null) Text(_info!),
                 if (_error != null) Text(_error!),
-                if (_clinics.isEmpty) const Text('No clinics are linked yet.'),
+                if (_clinics.isEmpty) const HeartEmptyBox('No clinics are linked yet.'),
                 for (final clinic in _clinics)
-                  Card(
-                    child: ListTile(
-                      title: Text(firstString(clinic, ['name', 'clinicName'])),
-                      subtitle: Text(firstString(clinic, ['city', 'province', 'subdomain'])),
-                      trailing: const Text('Use'),
-                      onTap: () => _select(clinic),
+                  HeartTile(
+                    icon: Icons.local_hospital_outlined,
+                    title: firstString(clinic, ['name', 'clinicName']),
+                    subtitle: firstString(clinic, ['city', 'province', 'subdomain']),
+                    trailing: Text(
+                      'Use',
+                      style: TextStyle(color: HeartColors.accentOf(context), fontWeight: FontWeight.w600),
                     ),
+                    onTap: () => _select(clinic),
                   ),
               ],
             ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -74,12 +77,9 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         if (!mounted) return;
-        setState(
-          () => _error = 'Location permission was not granted. Search by city or province.',
-        );
+        setState(() => _error = 'Location permission was not granted. Search by city or province.');
         return;
       }
       final position = await Geolocator.getCurrentPosition();
@@ -109,10 +109,7 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
     final repo = ref.read(findCareRepositoryProvider);
     try {
       if (_public) {
-        final rows = await repo.governmentFacilities(
-          province: _province,
-          query: _place.text,
-        );
+        final rows = await repo.governmentFacilities(province: _province, query: _place.text);
         if (!mounted) return;
         setState(() {
           _facilities = rows;
@@ -176,10 +173,7 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Back')),
-            FilledButton(
-              onPressed: accepted ? () => Navigator.pop(context, true) : null,
-              child: const Text('Book'),
-            ),
+            FilledButton(onPressed: accepted ? () => Navigator.pop(context, true) : null, child: const Text('Book')),
           ],
         ),
       ),
@@ -187,11 +181,13 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
     if (confirmed != true || !mounted) return;
     _consent = true;
     try {
-      await ref.read(findCareRepositoryProvider).book(
-        doctorId: provider.providerId,
-        date: _date,
-        startTime: start.length >= 5 ? start.substring(0, 5) : start,
-      );
+      await ref
+          .read(findCareRepositoryProvider)
+          .book(
+            doctorId: provider.providerId,
+            date: _date,
+            startTime: start.length >= 5 ? start.substring(0, 5) : start,
+          );
       if (!mounted) return;
       setState(() => _info = 'Visit booked. You can review it under Appointments.');
     } on ApiException catch (error) {
@@ -205,19 +201,12 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find care'),
-        actions: [
-          TextButton(
-            onPressed: () => context.push('/book'),
-            child: const Text('Book'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => context.push('/book'), child: const Text('Book'))],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text(
-            'Search private practices, or public clinics and hospitals, across South Africa.',
-          ),
+          const Text('Search private practices, or public clinics and hospitals, across South Africa.'),
           const SizedBox(height: 12),
           SegmentedButton<bool>(
             segments: const [
@@ -230,9 +219,7 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _place,
-            decoration: const InputDecoration(
-              labelText: 'Suburb, town or clinic',
-            ),
+            decoration: const InputDecoration(labelText: 'Suburb, town or clinic'),
           ),
           const SizedBox(height: 12),
           _dropdown('Province', _province, _provinces, (value) => setState(() => _province = value ?? '')),
@@ -269,19 +256,13 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
             label: Text(_lat == null ? 'Use my location' : 'Location set'),
           ),
           const SizedBox(height: 12),
-          FilledButton(
-            onPressed: _searching ? null : _search,
-            child: Text(_searching ? 'Searching...' : 'Search'),
-          ),
+          FilledButton(onPressed: _searching ? null : _search, child: Text(_searching ? 'Searching...' : 'Search')),
           if (_loadingLists) const LinearProgressIndicator(),
           if (_error != null) ...[
             const SizedBox(height: 12),
             Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ],
-          if (_info != null) ...[
-            const SizedBox(height: 12),
-            Text(_info!),
-          ],
+          if (_info != null) ...[const SizedBox(height: 12), Text(_info!)],
           const SizedBox(height: 12),
           if (_public)
             for (final facility in _facilities)
@@ -289,38 +270,31 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
                 child: ListTile(
                   title: Text(facility.name.isEmpty ? 'Facility' : facility.name),
                   subtitle: Text(
-                    [facility.address, facility.city, facility.province, facility.phone]
-                        .where((part) => part.isNotEmpty)
-                        .join(', '),
+                    [
+                      facility.address,
+                      facility.city,
+                      facility.province,
+                      facility.phone,
+                    ].where((part) => part.isNotEmpty).join(', '),
                   ),
                 ),
               )
           else
-            for (var index = 0; index < _providers.length; index++)
-              _providerCard(_providers[index], index == 0),
+            for (var index = 0; index < _providers.length; index++) _providerCard(_providers[index], index == 0),
           if (!_searching && _providers.isEmpty && _facilities.isEmpty && _info == null)
-            const Padding(
-              padding: EdgeInsets.only(top: 24),
-              child: Text('Search to see clinics and open slots.'),
-            ),
+            const Padding(padding: EdgeInsets.only(top: 24), child: Text('Search to see clinics and open slots.')),
         ],
       ),
     );
   }
 
-  Widget _dropdown(
-    String label,
-    String current,
-    List<String> options,
-    ValueChanged<String?> onChanged,
-  ) {
+  Widget _dropdown(String label, String current, List<String> options, ValueChanged<String?> onChanged) {
     return DropdownButtonFormField<String>(
       initialValue: current,
       decoration: InputDecoration(labelText: label),
       items: [
         const DropdownMenuItem(value: '', child: Text('Any')),
-        for (final option in options)
-          DropdownMenuItem(value: option, child: Text(option)),
+        for (final option in options) DropdownMenuItem(value: option, child: Text(option)),
       ],
       onChanged: onChanged,
     );
@@ -338,30 +312,21 @@ class _FindCareScreenState extends ConsumerState<FindCareScreen> {
             Text(provider.specialty.isEmpty ? 'General practitioner' : provider.specialty),
             if (provider.clinicName.isNotEmpty) Text('Clinic: ${provider.clinicName}'),
             if (provider.tenantId.isNotEmpty) PracticeRatingLine(tenantId: provider.tenantId),
-            Text(
-              [provider.address, provider.city, provider.province]
-                  .where((part) => part.isNotEmpty)
-                  .join(', '),
-            ),
+            Text([provider.address, provider.city, provider.province].where((part) => part.isNotEmpty).join(', ')),
             if (provider.distanceKm != null && provider.distanceKm! > 0)
               Text('${provider.distanceKm!.toStringAsFixed(1)} km away'),
-            if (provider.services.isNotEmpty)
-              Text('Services: ${provider.services.join(', ')}'),
-            if (provider.medicalAids.isNotEmpty)
-              Text('Medical aids: ${provider.medicalAids.join(', ')}'),
+            if (provider.services.isNotEmpty) Text('Services: ${provider.services.join(', ')}'),
+            if (provider.medicalAids.isNotEmpty) Text('Medical aids: ${provider.medicalAids.join(', ')}'),
             const SizedBox(height: 8),
             if (provider.slots.isEmpty)
-              const Text('No open slots were returned for this date.')
+              const HeartEmptyBox('No open slots were returned for this date.')
             else
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   for (final slot in provider.slots)
-                    OutlinedButton(
-                      onPressed: () => _book(provider, slot),
-                      child: Text(slot),
-                    ),
+                    OutlinedButton(onPressed: () => _book(provider, slot), child: Text(slot)),
                 ],
               ),
             if (provider.subdomain.isNotEmpty)

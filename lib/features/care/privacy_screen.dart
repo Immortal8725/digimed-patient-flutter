@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -83,7 +85,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           ? const LoadingView(label: 'Loading the privacy notice')
           : _error != null && _text.isEmpty
           ? ErrorView(message: _error!, onRetry: _load)
-          : ListView(
+          : HeartFormPanel(
+              title: 'Privacy Notice',
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(

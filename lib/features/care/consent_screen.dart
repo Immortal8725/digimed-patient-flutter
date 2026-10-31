@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -64,10 +67,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
 
   Future<void> _save(bool accepted) async {
     try {
-      final saved = await ref.read(careRepositoryProvider).saveConsent(
-        patientId: _patientId,
-        accepted: accepted,
-      );
+      final saved = await ref.read(careRepositoryProvider).saveConsent(patientId: _patientId, accepted: accepted);
       if (!mounted) return;
       setState(() {
         _accepted = accepted;
@@ -90,12 +90,9 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
     }
     if (_doctorId == null || _doctorId!.isEmpty) return;
     try {
-      await ref.read(careRepositoryProvider).grantDoctor(
-        patientId: _patientId,
-        userId: _doctorId!,
-        grantType: _grantType,
-        consentId: _consentId,
-      );
+      await ref
+          .read(careRepositoryProvider)
+          .grantDoctor(patientId: _patientId, userId: _doctorId!, grantType: _grantType, consentId: _consentId);
       if (mounted) setState(() => _info = 'Access granted to the doctor.');
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -119,21 +116,15 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                 const SizedBox(height: 8),
                 Text(_accepted ? 'Consent is on file.' : 'No consent is on file.'),
                 const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: () => _save(true),
-                  child: const Text('I agree'),
-                ),
+                FilledButton(onPressed: () => _save(true), child: const Text('I agree')),
                 const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: () => _save(false),
-                  child: const Text('Withdraw consent'),
-                ),
+                OutlinedButton(onPressed: () => _save(false), child: const Text('Withdraw consent')),
                 const SizedBox(height: 20),
-                Text('Grant a doctor', style: Theme.of(context).textTheme.titleMedium),
+                HeartHeader('Grant a doctor'),
                 const Text('Permanent, 30 days, or a one-time view.'),
                 const SizedBox(height: 8),
                 if (_doctors.isEmpty)
-                  const Text('No doctors were listed for the selected clinic.')
+                  const HeartEmptyBox('No doctors were listed for the selected clinic.')
                 else
                   DropdownButtonFormField<String>(
                     initialValue: _doctorId,

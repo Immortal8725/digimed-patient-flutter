@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -56,9 +59,7 @@ class _MissionScreenState extends ConsumerState<MissionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Mission Control'),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: _loading
           ? const LoadingView(label: 'Loading mission control')
@@ -67,7 +68,10 @@ class _MissionScreenState extends ConsumerState<MissionScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text('Your visits, wait time, medicines, and research offers.'),
+                const HeartHeader(
+                  'Mission Control',
+                  subtitle: 'Your visits, wait time, medicines, and research offers.',
+                ),
                 const SizedBox(height: 12),
                 _tile(
                   'Next visit',
@@ -76,10 +80,7 @@ class _MissionScreenState extends ConsumerState<MissionScreen> {
                       : '${firstString(next, ['appointmentDate', 'date'])} ${firstString(next, ['startTime'])}',
                   onTap: () => context.go('/appointments'),
                 ),
-                _tile(
-                  'Checked in',
-                  asBool(checkIn['checkedIn']) ? 'Yes' : 'No',
-                ),
+                _tile('Checked in', asBool(checkIn['checkedIn']) ? 'Yes' : 'No'),
                 _tile(
                   'Estimated wait (minutes)',
                   str(checkIn['estimatedWaitMinutes']).isEmpty
@@ -97,22 +98,21 @@ class _MissionScreenState extends ConsumerState<MissionScreen> {
                   onTap: () => context.push('/medications'),
                 ),
                 const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: () => context.push('/intake'),
-                  child: const Text('Open intake'),
-                ),
+                HeartCta('Open intake', onPressed: () => context.push('/intake')),
               ],
             ),
     );
   }
 
   Widget _tile(String label, String value, {VoidCallback? onTap}) {
-    return Card(
-      child: ListTile(
-        title: Text(label),
-        subtitle: Text(value),
-        onTap: onTap,
-      ),
-    );
+    return HeartTile(title: label, subtitle: value, icon: _missionIcons[label] ?? Icons.speed, onTap: onTap);
   }
 }
+
+const _missionIcons = <String, IconData>{
+  'Next visit': Icons.event_outlined,
+  'Checked in': Icons.how_to_reg_outlined,
+  'Estimated wait (minutes)': Icons.timer_outlined,
+  'Research offers': Icons.science_outlined,
+  'Medicines ending': Icons.medication_outlined,
+};

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,8 +19,7 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
   ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
-    with SingleTickerProviderStateMixin {
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabs;
   bool _loading = true;
   String? _error;
@@ -103,23 +105,29 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                 if (_needsCopay || (_estimate != null && _estimate!.isNotEmpty))
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Text(
-                      _estimate == null || _estimate!.isEmpty
-                          ? 'A co-payment is required. Open a visit to pay.'
-                          : _estimate!,
+                    child: HeartCard(
+                      child: Text(
+                        _estimate == null || _estimate!.isEmpty
+                            ? 'A co-payment is required. Open a visit to pay.'
+                            : _estimate!,
+                      ),
                     ),
                   ),
                 Expanded(
                   child: TabBarView(
-              controller: _tabs,
-              children: [
-                _list(upcoming, 'No upcoming appointments', 'Book a visit, then cancel or reschedule if plans change.'),
-                _list(past, 'No past appointments', 'Completed visits will show here.'),
-                _list(cancelled, 'No cancelled appointments', 'Cancelled bookings stay here for your records.'),
-              ],
+                    controller: _tabs,
+                    children: [
+                      _list(
+                        upcoming,
+                        'No upcoming appointments',
+                        'Book a visit, then cancel or reschedule if plans change.',
+                      ),
+                      _list(past, 'No past appointments', 'Completed visits will show here.'),
+                      _list(cancelled, 'No cancelled appointments', 'Cancelled bookings stay here for your records.'),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
             ),
     );
   }
@@ -129,23 +137,20 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       return EmptyView(
         title: title,
         detail: detail,
-        action: FilledButton(
-          onPressed: () => context.go('/find-care'),
-          child: const Text('Find care'),
-        ),
+        action: FilledButton(onPressed: () => context.go('/find-care'), child: const Text('Find care')),
       );
     }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
           for (final row in rows)
-            ListTile(
-              title: Text(row.doctorName.isEmpty ? 'Appointment' : row.doctorName),
-              subtitle: Text(
-                '${row.date} ${row.startTime} ${row.clinicName} ${row.status}'.trim(),
-              ),
-              trailing: const Icon(Icons.chevron_right),
+            HeartTile(
+              title: row.doctorName.isEmpty ? 'Appointment' : row.doctorName,
+              subtitle: '${row.date} ${row.startTime} ${row.clinicName} ${row.status}'.trim(),
+              icon: Icons.calendar_today_outlined,
+              active: row.isUpcomingOn(DateTime.now().toIso8601String().substring(0, 10)),
               onTap: () => context.push('/appointments/${row.id}'),
             ),
         ],
