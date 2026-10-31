@@ -61,11 +61,13 @@ void main() {
     expect(find.text('Connected'), findsOneWidget);
     expect(find.text('Full cover'), findsOneWidget);
     expect(find.text('Verified'), findsOneWidget);
-    expect(find.text('120/80 mmHg'), findsOneWidget);
-    expect(find.text('72 bpm'), findsOneWidget);
+    expect(find.text('120/80 mmHg'), findsWidgets);
+    expect(find.text('72 bpm'), findsWidgets);
     expect(find.text('No weight recorded yet'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('1 upcoming · 2 total'), 200);
-    expect(find.text('Dr x'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('1 upcoming · 2 total'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Dr x'), findsWidgets);
+    expect(find.text('My Heart'), findsWidgets);
+    expect(find.text('SS'), findsOneWidget);
   });
 
   testWidgets('empty state', (tester) async {
@@ -78,9 +80,10 @@ void main() {
     expect(find.text('Not verified'), findsOneWidget);
     expect(find.text('N/A'), findsOneWidget);
     expect(find.text('No blood pressure recorded yet'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Not given'), 200);
+    await tester.scrollUntilVisible(find.text('Not given'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('0 upcoming · 1 total'), findsOneWidget);
-    expect(find.textContaining('No upcoming appointments'), findsOneWidget);
+    expect(find.text('Nothing booked'), findsOneWidget);
+    expect(find.text('No doctors linked yet'), findsOneWidget);
   });
 
   testWidgets('drawer lists the web menu and opens screens', (tester) async {
@@ -88,12 +91,33 @@ void main() {
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
     for (final l in patientMenu) {
-      await tester.scrollUntilVisible(find.text(l.label), 100, scrollable: find.descendant(of: find.byType(Drawer), matching: find.byType(Scrollable)));
-      expect(find.text(l.label), findsOneWidget);
+      final inDrawer = find.descendant(of: find.byType(Drawer), matching: find.text(l.label));
+      await tester.scrollUntilVisible(inDrawer, 100, scrollable: find.descendant(of: find.byType(Drawer), matching: find.byType(Scrollable)).first);
+      expect(inDrawer, findsOneWidget);
     }
     expect(patientMenu.length, 12);
     await tester.tap(find.text('My Research'));
     await tester.pumpAndSettle();
     expect(find.text('route /research'), findsOneWidget);
+  });
+
+  testWidgets('medications card shows today\'s doses and opens medications', (tester) async {
+    await tester.pumpWidget(host(const DashboardData(dosesToday: 3)));
+    await tester.scrollUntilVisible(find.text('3 doses due today'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text('3 doses due today'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('3 doses due today'));
+    await tester.pumpAndSettle();
+    expect(find.text('route /medications'), findsOneWidget);
+  });
+
+  testWidgets('wide layout shows the icon rail and heart rate card', (tester) async {
+    tester.view.physicalSize = const Size(1280, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(host(const DashboardData(clinicName: 'Aura Wellness')));
+    expect(find.byTooltip('Mission control'), findsOneWidget);
+    expect(find.text('AW'), findsNothing);
+    expect(find.text('Illustrative trace'), findsOneWidget);
   });
 }

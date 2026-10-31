@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/json/json_values.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/realtime/realtime_service.dart';
+import '../../core/theme/theme_controller.dart';
 import '../../core/widgets/account_menu.dart';
 import '../../core/widgets/brand_logo.dart';
 import '../../core/widgets/status_views.dart';
@@ -39,6 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     List<Map<String, dynamic>> clinics = [];
     List<Map<String, dynamic>> vitals = [];
     bool? consent;
+    int doses = 0;
     try {
       profile = await care.profile();
     } on ApiException catch (err) {
@@ -52,6 +54,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (_) {}
     try {
       vitals = await care.vitals();
+    } catch (_) {}
+    try {
+      doses = (await care.dosesToday()).length;
     } catch (_) {}
     final patientId = firstString(profile, ['id', 'patientId']);
     if (patientId.isNotEmpty) {
@@ -83,6 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         connected: connected,
         consentAccepted: consent,
         error: error,
+        dosesToday: doses,
       );
     });
   }
@@ -94,7 +100,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       drawer: PatientDrawer(clinicName: _data.clinicName),
       body: _loading
           ? const LoadingView(label: 'Loading your care')
-          : PatientDashboardView(data: _data, now: DateTime.now(), onRefresh: _load),
+          : PatientDashboardView(
+              data: _data,
+              now: DateTime.now(),
+              onRefresh: _load,
+              onToggleTheme: () => ref.read(themeModeProvider.notifier).cycle(),
+            ),
     );
   }
 }
