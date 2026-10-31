@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -81,9 +84,7 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
     final body = <String, dynamic>{
       for (final key in _keys)
         key: key == 'willingTravelKm'
-            ? (_fields[key]!.text.trim().isEmpty
-                  ? null
-                  : num.tryParse(_fields[key]!.text.trim()))
+            ? (_fields[key]!.text.trim().isEmpty ? null : num.tryParse(_fields[key]!.text.trim()))
             : _fields[key]!.text.trim(),
       'visible': _visible,
     };
@@ -94,10 +95,7 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
     try {
       await ref.read(careRepositoryProvider).saveVolunteer(_body());
       if (mounted) {
-        setState(
-          () => _info =
-              'Volunteer profile saved. Research sites can find you if you are visible.',
-        );
+        setState(() => _info = 'Volunteer profile saved. Research sites can find you if you are visible.');
       }
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -105,10 +103,7 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
   }
 
   Future<void> _sign(Map<String, dynamic> enrolment) async {
-    final text = firstString(enrolment, [
-      'consentText',
-      'studyConsentText',
-    ]).isEmpty
+    final text = firstString(enrolment, ['consentText', 'studyConsentText']).isEmpty
         ? 'I consent to participate in this research study. I understand I may withdraw at any time.'
         : firstString(enrolment, ['consentText', 'studyConsentText']);
     final yes = await showDialog<bool>(
@@ -118,18 +113,13 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
         content: SingleChildScrollView(child: Text(text)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('I agree, sign eConsent'),
-          ),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('I agree, sign eConsent')),
         ],
       ),
     );
     if (yes != true) return;
     try {
-      await ref.read(careRepositoryProvider).signEconsent(
-        firstString(enrolment, ['id', 'participantId']),
-      );
+      await ref.read(careRepositoryProvider).signEconsent(firstString(enrolment, ['id', 'participantId']));
       if (!mounted) return;
       setState(() => _info = 'eConsent recorded.');
       await _load();
@@ -161,9 +151,7 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'Opt-in profile, offers, and eConsent. Answers are self-declared (POPIA).',
-                ),
+                const Text('Opt-in profile, offers, and eConsent. Answers are self-declared (POPIA).'),
                 if (_info != null) Text(_info!),
                 if (_error != null) Text(_error!),
                 const SizedBox(height: 8),
@@ -183,12 +171,14 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
                 ),
                 FilledButton(onPressed: _save, child: const Text('Save profile')),
                 const SizedBox(height: 16),
-                Text('Offers inbox', style: Theme.of(context).textTheme.titleMedium),
-                if (_offers.isEmpty) const Text('No offers yet.'),
+                HeartHeader('Offers inbox'),
+                if (_offers.isEmpty) const HeartEmptyBox('No offers yet.'),
                 for (final offer in _offers)
                   Card(
                     child: ListTile(
-                      title: Text(firstString(offer, ['studyTitle']).isEmpty ? 'Study' : firstString(offer, ['studyTitle'])),
+                      title: Text(
+                        firstString(offer, ['studyTitle']).isEmpty ? 'Study' : firstString(offer, ['studyTitle']),
+                      ),
                       subtitle: Text('${firstString(offer, ['message'])}\n${firstString(offer, ['status'])}'),
                       isThreeLine: true,
                       trailing: firstString(offer, ['status']).toUpperCase() == 'PENDING'
@@ -209,9 +199,9 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
                     ),
                   ),
                 const SizedBox(height: 12),
-                Text('My enrolments', style: Theme.of(context).textTheme.titleMedium),
+                HeartHeader('My enrolments'),
                 const Text('Sign eConsent before study procedures.'),
-                if (_enrolments.isEmpty) const Text('No enrolments yet.'),
+                if (_enrolments.isEmpty) const HeartEmptyBox('No enrolments yet.'),
                 for (final enrolment in _enrolments)
                   Card(
                     child: ListTile(
@@ -219,10 +209,7 @@ class _ResearchScreenState extends ConsumerState<ResearchScreen> {
                       subtitle: Text(
                         '${firstString(enrolment, ['studyTitle', 'studyId'])} ${firstString(enrolment, ['status'])}',
                       ),
-                      trailing: TextButton(
-                        onPressed: () => _sign(enrolment),
-                        child: const Text('Sign eConsent'),
-                      ),
+                      trailing: TextButton(onPressed: () => _sign(enrolment), child: const Text('Sign eConsent')),
                     ),
                   ),
               ],

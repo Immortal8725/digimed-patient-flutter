@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -79,10 +82,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _sendOtp() async {
     try {
-      final challenge = await ref.read(authRepositoryProvider).requestOtp(
-        phone: _phone.text.trim(),
-        purpose: 'profile-phone',
-      );
+      final challenge = await ref
+          .read(authRepositoryProvider)
+          .requestOtp(phone: _phone.text.trim(), purpose: 'profile-phone');
       if (!mounted) return;
       final preview = challenge.previewCode.isEmpty ? '' : ' Code: ${challenge.previewCode}.';
       setState(() => _info = 'Code sent.${challenge.maskedPhone.isEmpty ? '' : ' ${challenge.maskedPhone}.'}$preview');
@@ -93,11 +95,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _verify() async {
     try {
-      final token = await ref.read(authRepositoryProvider).verifyOtp(
-        phone: _phone.text.trim(),
-        code: _otp.text,
-        purpose: 'profile-phone',
-      );
+      final token = await ref
+          .read(authRepositoryProvider)
+          .verifyOtp(phone: _phone.text.trim(), code: _otp.text, purpose: 'profile-phone');
       if (mounted) {
         setState(() {
           _verificationToken = token;
@@ -112,9 +112,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _savePhone() async {
     final phone = _phone.text.trim();
     final sameVerified =
-        phone.isNotEmpty &&
-        phone == firstString(_profile, ['phone']) &&
-        asBool(_profile['phoneVerified']);
+        phone.isNotEmpty && phone == firstString(_profile, ['phone']) && asBool(_profile['phoneVerified']);
     if (phone.isNotEmpty && !sameVerified && _verificationToken == null) {
       setState(() => _error = 'Verify the new number with the SMS code first.');
       return;
@@ -144,48 +142,77 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text(firstString(_profile, ['fullName', 'username'])),
-                const SizedBox(height: 8),
-                const Text('Phone numbers must be verified with an SMS code.'),
-                if (_info != null) Text(_info!),
-                if (_error != null) Text(_error!),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _email,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _busy ? null : _saveEmail,
-                  child: const Text('Save email'),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _phone,
-                  decoration: InputDecoration(
-                    labelText: 'Phone',
-                    helperText: verified ? 'Verified on file' : 'Not verified',
-                  ),
-                ),
-                TextField(
-                  controller: _otp,
-                  decoration: const InputDecoration(labelText: 'SMS code'),
-                ),
-                Wrap(
-                  spacing: 8,
+                Row(
                   children: [
-                    OutlinedButton(onPressed: _sendOtp, child: const Text('Send code')),
-                    OutlinedButton(onPressed: _verify, child: const Text('Verify')),
-                    FilledButton(
-                      onPressed: _busy ? null : _savePhone,
-                      child: const Text('Save phone'),
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: HeartColors.accentOf(context),
+                      child: Text(
+                        _initials(firstString(_profile, ['fullName', 'username'])),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        firstString(_profile, ['fullName', 'username']),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+                HeartSection(
+                  'My Details',
+                  HeartCard(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text('Phone numbers must be verified with an SMS code.'),
+                        if (_info != null) Text(_info!),
+                        if (_error != null) Text(_error!),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _email,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton(onPressed: _busy ? null : _saveEmail, child: const Text('Save email')),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _phone,
+                          decoration: InputDecoration(
+                            labelText: 'Phone',
+                            helperText: verified ? 'Verified on file' : 'Not verified',
+                          ),
+                        ),
+                        TextField(
+                          controller: _otp,
+                          decoration: const InputDecoration(labelText: 'SMS code'),
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            OutlinedButton(onPressed: _sendOtp, child: const Text('Send code')),
+                            OutlinedButton(onPressed: _verify, child: const Text('Verify')),
+                            FilledButton(onPressed: _busy ? null : _savePhone, child: const Text('Save phone')),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 const MedicalAidSection(),
               ],
             ),
     );
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    return (parts.first[0] + (parts.length > 1 ? parts.last[0] : '')).toUpperCase();
   }
 }

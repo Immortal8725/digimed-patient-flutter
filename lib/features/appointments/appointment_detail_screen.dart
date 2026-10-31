@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -283,7 +285,8 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
           ? const LoadingView(label: 'Loading appointment')
           : visit == null
           ? ErrorView(message: _error ?? 'Appointment not found', onRetry: _load)
-          : ListView(
+          : HeartFormPanel(
+              title: 'Visit details',
               padding: const EdgeInsets.all(16),
               children: [
                 Text(visit.doctorName.isEmpty ? 'Visit' : visit.doctorName, style: Theme.of(context).textTheme.titleLarge),

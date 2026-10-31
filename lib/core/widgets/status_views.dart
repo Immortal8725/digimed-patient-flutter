@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'heart_ui.dart';
+
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key, this.label = 'Loading'});
 
@@ -34,11 +36,7 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.cloud_off_outlined,
-              size: 40,
-              color: Theme.of(context).colorScheme.error,
-            ),
+            const HeartIconChip(Icons.cloud_off_outlined, size: 48),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
@@ -53,64 +51,45 @@ class ErrorView extends StatelessWidget {
 }
 
 class EmptyView extends StatelessWidget {
-  const EmptyView({super.key, required this.title, this.detail, this.action});
+  const EmptyView({super.key, required this.title, this.detail, this.action, this.icon = Icons.inbox_outlined});
 
   final String title;
   final String? detail;
   final Widget? action;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            if (detail != null) ...[
-              const SizedBox(height: 8),
-              Text(detail!, textAlign: TextAlign.center),
-            ],
-            if (action != null) ...[const SizedBox(height: 16), action!],
-          ],
+        padding: const EdgeInsets.all(16),
+        child: HeartCard(
+          padding: const EdgeInsets.all(12),
+          child: HeartEmptyBox(title, icon: icon, detail: detail, action: action),
         ),
       ),
     );
   }
 }
 
+/// Bullet header plus a white rounded card, in the "My Heart" style.
 class SectionCard extends StatelessWidget {
-  const SectionCard({super.key, required this.title, this.subtitle, required this.child});
+  const SectionCard({super.key, required this.title, this.subtitle, required this.child, this.trailing});
 
   final String title;
   final String? subtitle;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: HeartSection(
+        title,
+        HeartCard(padding: const EdgeInsets.all(14), child: child),
+        subtitle: subtitle,
+        trailing: trailing,
       ),
     );
   }

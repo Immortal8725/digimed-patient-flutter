@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/account_menu.dart';
+
+const _icons = <String, IconData>{
+  '/book': Icons.event_available_outlined,
+  '/medications': Icons.medication_outlined,
+  '/intake': Icons.description_outlined,
+  '/notifications': Icons.notifications_none,
+  '/privacy': Icons.privacy_tip_outlined,
+  '/consent': Icons.verified_user_outlined,
+  '/research': Icons.science_outlined,
+  '/reviews': Icons.star_border,
+  '/rights': Icons.gavel_outlined,
+  '/profile': Icons.person_outline,
+  '/clinics': Icons.local_hospital_outlined,
+  '/mission': Icons.speed,
+};
 
 class CareHubScreen extends StatelessWidget {
   const CareHubScreen({super.key});
@@ -26,21 +44,24 @@ class CareHubScreen extends StatelessWidget {
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('Care'), actions: const [AccountMenu()]),
-      body: ListView(
+      body: HeartPage(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'The same patient tools as the DigiMed website. Staff desks stay on the web app.',
+          HeartSection(
+            'My Care',
+            Column(
+              children: [
+                for (final item in items)
+                  HeartTile(
+                    title: item.$1,
+                    subtitle: item.$3,
+                    icon: _icons[item.$2] ?? Icons.favorite_border,
+                    active: item.$2 == '/book',
+                    onTap: () => context.push(item.$2),
+                  ),
+              ],
             ),
+            subtitle: 'The same patient tools as the DigiMed website. Staff desks stay on the web app.',
           ),
-          for (final item in items)
-            ListTile(
-              title: Text(item.$1),
-              subtitle: Text(item.$3),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push(item.$2),
-            ),
         ],
       ),
     );

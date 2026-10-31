@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/heart_ui.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/json/json_values.dart';
@@ -94,10 +97,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       return;
     }
     try {
-      final message = await ref.read(careRepositoryProvider).requestLinkOtp(
-        identity: _identity.text.trim(),
-        tenantId: _tenantId!,
-      );
+      final message = await ref
+          .read(careRepositoryProvider)
+          .requestLinkOtp(identity: _identity.text.trim(), tenantId: _tenantId!);
       if (mounted) setState(() => _info = message);
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -107,11 +109,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _link() async {
     if (_tenantId == null) return;
     try {
-      await ref.read(careRepositoryProvider).linkByIdentity(
-        identity: _identity.text.trim(),
-        otp: _otp.text.trim(),
-        tenantId: _tenantId!,
-      );
+      await ref
+          .read(careRepositoryProvider)
+          .linkByIdentity(identity: _identity.text.trim(), otp: _otp.text.trim(), tenantId: _tenantId!);
       if (!mounted) return;
       setState(() => _info = 'Linked. You can approve requests for this record.');
       await _load();
@@ -128,7 +128,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ? const LoadingView(label: 'Loading notices')
           : RefreshIndicator(
               onRefresh: _load,
-              child: ListView(
+              child: HeartFormPanel(
+                title: 'Link Your Record',
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (_error != null) Text(_error!),
@@ -136,7 +137,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   const Text('Link a clinic record, then approve or deny access requests.'),
                   const SizedBox(height: 8),
                   if (_clinics.isEmpty)
-                    const Text('No linked clinic yet. You can still read notices.')
+                    const HeartEmptyBox('No linked clinic yet. You can still read notices.')
                   else
                     DropdownButtonFormField<String>(
                       initialValue: _tenantId,
@@ -153,9 +154,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _identity,
-                    decoration: const InputDecoration(
-                      labelText: 'SA ID, passport, or phone',
-                    ),
+                    decoration: const InputDecoration(labelText: 'SA ID, passport, or phone'),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton(onPressed: _requestCode, child: const Text('Request verification code')),
@@ -166,7 +165,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   const SizedBox(height: 8),
                   FilledButton(onPressed: _link, child: const Text('Link record')),
                   const SizedBox(height: 16),
-                  if (_items.isEmpty) const Text('No notices yet.'),
+                  if (_items.isEmpty) const HeartEmptyBox('No notices yet.'),
                   for (final item in _items) _tile(item),
                 ],
               ),
@@ -188,15 +187,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             if (type == 'PERMISSION' && permissionId.isNotEmpty)
               Row(
                 children: [
-                  FilledButton(
-                    onPressed: () => _decide(permissionId, true),
-                    child: const Text('Approve'),
-                  ),
+                  FilledButton(onPressed: () => _decide(permissionId, true), child: const Text('Approve')),
                   const SizedBox(width: 8),
-                  OutlinedButton(
-                    onPressed: () => _decide(permissionId, false),
-                    child: const Text('Deny'),
-                  ),
+                  OutlinedButton(onPressed: () => _decide(permissionId, false), child: const Text('Deny')),
                 ],
               ),
           ],
