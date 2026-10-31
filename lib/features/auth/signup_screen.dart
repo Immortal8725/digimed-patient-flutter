@@ -260,6 +260,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Phone (optional)',
                       helperText: 'South African mobile. Verify with SMS if you add one.',
+                      helperMaxLines: 2,
                     ),
                   ),
                   const SizedBox(height: 8),
