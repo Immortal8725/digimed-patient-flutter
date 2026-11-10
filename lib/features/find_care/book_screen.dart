@@ -39,6 +39,8 @@ class _BookScreenState extends ConsumerState<BookScreen> {
   String _end = '';
   bool _consent = false;
   List<String> _freeSlots = [];
+  bool _slotsLoading = false;
+  String? _slotsError;
 
   @override
   void initState() {
@@ -77,14 +79,18 @@ class _BookScreenState extends ConsumerState<BookScreen> {
         }
       } catch (_) {}
       if (!mounted) return;
+      final doctorId = doctors.length == 1 ? firstString(doctors.first, ['id', 'userId', 'doctorId']) : '';
       setState(() {
         _tenantId = tenantId;
         _tenant = tenant;
         _doctors = doctors;
         _existing = existing;
-        _doctorId = doctors.length == 1 ? firstString(doctors.first, ['id', 'userId', 'doctorId']) : '';
+        _doctorId = doctorId;
         _loading = false;
       });
+      if (doctorId.isNotEmpty) {
+        await _refreshFreeSlots();
+      }
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -94,22 +100,41 @@ class _BookScreenState extends ConsumerState<BookScreen> {
     }
   }
 
-  List<ClinicSlot> get _hours {
-    return clinicHourSlots(
-      opening: firstString(_tenant, ['openingHour']),
-      closing: firstString(_tenant, ['closingHour']),
-      durationMinutes: asInt(_tenant['appointmentDuration']) ?? 30,
-    );
-  }
-
   Future<void> _refreshFreeSlots() async {
-    if (_doctorId.isEmpty || _date.isEmpty) return;
+    if (_doctorId.isEmpty || _date.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _freeSlots = [];
+        _slotsError = null;
+        _slotsLoading = false;
+      });
+      return;
+    }
+    setState(() {
+      _slotsLoading = true;
+      _slotsError = null;
+    });
     try {
       final slots = await ref.read(findCareRepositoryProvider).slots(_doctorId, _date);
       if (!mounted) return;
-      setState(() => _freeSlots = slots);
-    } catch (_) {
-      if (mounted) setState(() => _freeSlots = []);
+      setState(() {
+        _freeSlots = slots;
+        _slotsLoading = false;
+        _slotsError = null;
+        if (_start.isNotEmpty && !slots.any((slot) => _hhmm(slot) == _hhmm(_start))) {
+          _start = '';
+          _end = '';
+        }
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _freeSlots = [];
+        _slotsLoading = false;
+        _slotsError = error is ApiException
+            ? error.message
+            : 'Free slots could not be loaded. Please try again.';
+      });
     }
   }
 
@@ -181,6 +206,12 @@ class _BookScreenState extends ConsumerState<BookScreen> {
         _busy = false;
         _error = error.message;
       });
+      final text = error.message.toLowerCase();
+      if (text.contains('slot was just taken')
+          || text.contains('slot is not available')
+          || text.contains('already has an appointment')) {
+        await _refreshFreeSlots();
+      }
     }
   }
 
@@ -309,7 +340,20 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                 const SizedBox(height: 16),
                 HeartHeader('Open slots'),
                 const SizedBox(height: 8),
-                if (_freeSlots.isNotEmpty)
+                if (_slotsLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_slotsError != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_slotsError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      TextButton(onPressed: _refreshFreeSlots, child: const Text('Retry')),
+                    ],
+                  )
+                else if (_freeSlots.isNotEmpty)
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -330,26 +374,10 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                         ),
                     ],
                   )
-                else if (_hours.isEmpty)
-                  const HeartEmptyBox('No booking slots are configured yet. You can still type a time.')
+                else if (_doctorId.isEmpty || _date.isEmpty)
+                  const HeartEmptyBox('Choose a doctor and a date to see free slots.')
                 else
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final slot in _hours)
-                        ChoiceChip(
-                          label: Text(slot.label),
-                          selected: _start == slot.start && _end == slot.end,
-                          onSelected: blocked || !open
-                              ? null
-                              : (_) => setState(() {
-                                  _start = slot.start;
-                                  _end = slot.end;
-                                }),
-                        ),
-                    ],
-                  ),
+                  const HeartEmptyBox('No free slots on this day'),
                 const SizedBox(height: 12),
                 Text('Selected time: ${_start.isEmpty ? 'Not selected' : '$_start - $_end'}'),
                 CheckboxListTile(
